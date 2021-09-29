@@ -1,0 +1,128 @@
+// Tales of Ymskir object:
+toy = {};
+
+jb.program = {
+  fontName: "VT323-Regular",
+  largeFontName: "UncialAntiqua-Regular",
+  WIDTH: 1024,
+  HEIGHT: 768,
+  fontMain: null,
+  fontLarge: null,
+  chars: {image: null, sheet: null},
+  inside: {image: null},
+  backdrop: {image: null},
+  TILE_SIZE: 24,
+  splash: {},
+  
+  loadResources: function() {
+    jb.resize(this.WIDTH, this.HEIGHT);
+    jb.setBackColor("block");
+    this.fontMain = resources.loadFont(this.fontName, "../Shared", "ttf");
+    this.fontLarge = resources.loadFont(this.largeFontName, "../Shared", "ttf");
+    this.chars.image = resources.loadImage("oryx_16bit_fantasy_creatures_trans.png", "../Shared/fantasy%20art/");
+    this.inside.image = resources.loadImage("oryx_16bit_fantasy_world_trans.png", "../Shared/fantasy%20art/");
+    this.backdrop.image = resources.loadImage("oryx_16bit_background_trans.png", "../Shared/fantasy%20art/");
+  },
+  
+  do_waitForResources: function() {
+    var x = jb.canvas.width / 20;
+    var y = jb.canvas.height / 2 - jb.canvas.height / 20;
+    var width = jb.canvas.width * 18 / 20;
+    var height = jb.canvas.height / 10;
+    
+    jb.ctxt.strokeStyle = "white";
+    jb.ctxt.lineWidth = 1;
+    jb.ctxt.fillStyle = "white"
+    jb.ctxt.fillRect(x, y, width, height);
+    
+    jb.ctxt.strokeStyle = "green";
+    jb.ctxt.fillStyle = "green";
+    jb.ctxt.fillRect(x, y, width * resources.getLoadProgress(), height);
+    jb.while(resources.getLoadProgress() < 1.0);
+  },
+  
+  setup: function() {
+    jb.setAntiAliasing(false);
+    this.chars.sheet = jb.sprites.addSheet("characters", this.chars.image, 0, 0, this.TILE_SIZE, this.TILE_SIZE);
+    blueprints.draft("DemoChar", {}, {});
+    blueprints.make("DemoChar", "sprite");
+    this.splash.charLeft = blueprints.build("DemoChar");
+    this.splash.charRight = blueprints.build("DemoChar");
+
+    var chars = [this.splash.charLeft, this.splash.charRight];
+    chars.forEach( function(char) {
+      var idleState = jb.sprites.createState([0, 1], 0.33);
+      char.spriteSetSheet("characters");
+      char.spriteAddState("idle", idleState);
+      char.spriteSetAnchor(0.5, 0.0);
+      char.spriteSetState("idle");
+    });
+    
+    this.splash.charLeft.spriteMoveTo(this.WIDTH / 4, this.HEIGHT * 3 / 5);
+    this.splash.charRight.spriteMoveTo(this.WIDTH * 3 / 4, this.HEIGHT * 3 / 5);
+    this.splash.charLeft.spriteSetScale(-4, 4);
+    this.splash.charRight.spriteSetScale(4, 4);
+    
+    this.choices = ["New Game", "Continue", "Credits"];
+    this.choice = 0;
+  },
+  
+  do_showSplashPage: function() {
+    var doExit = jb.got === "return";
+    
+    jb.ctxt.fillStyle = "black";
+    jb.clear();
+    jb.setOpenTypeFont(this.fontMain, 48);
+    jb.drawOpenTypeFontAt(jb.ctxt, "Tales of", this.WIDTH / 2, this.HEIGHT / 4, "blue", "blue", 0.5, 1.0);
+    jb.setOpenTypeFont(this.fontLarge, 120);
+    jb.drawOpenTypeFontAt(jb.ctxt, "Yskmir", this.WIDTH / 2, 2 * this.HEIGHT / 5, "white", "white", 0.5, 1.0);
+    this.splash.charLeft.spriteUpdate();
+    this.splash.charRight.spriteUpdate();
+    this.splash.charLeft.spriteDraw();
+    this.splash.charRight.spriteDraw();
+    
+    jb.setOpenTypeFont(this.fontMain, 48);
+    this.choices.forEach(function(entry) {
+      var index = this.choices.indexOf(entry);
+      if (entry === this.choices[this.choice]) {
+        jb.drawOpenTypeFontAt(jb.ctxt, "> " + entry + " <", this.WIDTH / 2, this.HEIGHT * 3 / 5 + 48 * index, "white", "white", 0.5, 1.0);
+      }
+      else {
+        jb.drawOpenTypeFontAt(jb.ctxt, entry, this.WIDTH / 2, this.HEIGHT * 3 / 5 + 48 * index, "gray", "gray", 0.5, 1.0);
+      }
+    }.bind(this));
+    
+    if (jb.got === "up") {
+      this.choice -= 1;
+      if (this.choice < 0) this.choice += this.choices.length;
+    }
+    else if (jb.got === "down") {
+      this.choice += 1;
+      this.choice = this.choice % this.choices.length;
+    }
+    
+    jb.reset();
+  
+    jb.while(!doExit);
+  },
+  
+  checkPlayerChoice: function() {
+    switch (this.choices[this.choice]) {
+      case "New Game": {
+        jb.goto("charCreate");
+        break;
+      }
+      
+      case "Continue": {
+        console.log("Continue");
+        break;
+      }
+      
+      case "Credits": {
+        console.log("Credits");
+        break;
+      }
+    }
+  },
+};
+
