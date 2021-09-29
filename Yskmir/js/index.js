@@ -12,6 +12,8 @@ jb.program = {
   inside: {image: null},
   backdrop: {image: null},
   TILE_SIZE: 24,
+  FONT_SIZE: 48,
+  FONT_SIZE_LARGE: 120,
   splash: {},
   
   loadResources: function() {
@@ -19,9 +21,9 @@ jb.program = {
     jb.setBackColor("block");
     this.fontMain = resources.loadFont(this.fontName, "../Shared", "ttf");
     this.fontLarge = resources.loadFont(this.largeFontName, "../Shared", "ttf");
-    this.chars.image = resources.loadImage("oryx_16bit_fantasy_creatures_trans.png", "../Shared/fantasy%20art/");
-    this.inside.image = resources.loadImage("oryx_16bit_fantasy_world_trans.png", "../Shared/fantasy%20art/");
-    this.backdrop.image = resources.loadImage("oryx_16bit_background_trans.png", "../Shared/fantasy%20art/");
+    this.chars.image = resources.loadImage("oryx_16bit_fantasy_creatures_trans.png", "../Shared/fantasy_art/");
+    this.inside.image = resources.loadImage("oryx_16bit_fantasy_world_trans.png", "../Shared/fantasy_art/");
+    this.backdrop.image = resources.loadImage("oryx_16bit_background_trans.png", "../Shared/fantasy_art/");
   },
   
   do_waitForResources: function() {
@@ -72,23 +74,23 @@ jb.program = {
     
     jb.ctxt.fillStyle = "black";
     jb.clear();
-    jb.setOpenTypeFont(this.fontMain, 48);
-    jb.drawOpenTypeFontAt(jb.ctxt, "Tales of", this.WIDTH / 2, this.HEIGHT / 4, "blue", "blue", 0.5, 1.0);
-    jb.setOpenTypeFont(this.fontLarge, 120);
+    jb.setOpenTypeFont(this.fontLarge, this.FONT_SIZE);
+    jb.drawOpenTypeFontAt(jb.ctxt, "Tales of", this.WIDTH / 2, this.HEIGHT / 4, "yellow", "yellow", 0.5, 1.0);
+    jb.setOpenTypeFont(this.fontLarge, this.FONT_SIZE_LARGE);
     jb.drawOpenTypeFontAt(jb.ctxt, "Yskmir", this.WIDTH / 2, 2 * this.HEIGHT / 5, "white", "white", 0.5, 1.0);
     this.splash.charLeft.spriteUpdate();
     this.splash.charRight.spriteUpdate();
     this.splash.charLeft.spriteDraw();
     this.splash.charRight.spriteDraw();
     
-    jb.setOpenTypeFont(this.fontMain, 48);
+    jb.setOpenTypeFont(this.fontMain, this.FONT_SIZE);
     this.choices.forEach(function(entry) {
       var index = this.choices.indexOf(entry);
       if (entry === this.choices[this.choice]) {
-        jb.drawOpenTypeFontAt(jb.ctxt, "> " + entry + " <", this.WIDTH / 2, this.HEIGHT * 3 / 5 + 48 * index, "white", "white", 0.5, 1.0);
+        jb.drawOpenTypeFontAt(jb.ctxt, "> " + entry + " <", this.WIDTH / 2, this.HEIGHT * 3 / 5 + this.FONT_SIZE * index, "white", "white", 0.5, 1.0);
       }
       else {
-        jb.drawOpenTypeFontAt(jb.ctxt, entry, this.WIDTH / 2, this.HEIGHT * 3 / 5 + 48 * index, "gray", "gray", 0.5, 1.0);
+        jb.drawOpenTypeFontAt(jb.ctxt, entry, this.WIDTH / 2, this.HEIGHT * 3 / 5 + this.FONT_SIZE * index, "gray", "gray", 0.5, 1.0);
       }
     }.bind(this));
     

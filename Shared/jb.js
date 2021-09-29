@@ -11,13 +11,13 @@ jb = {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-// oooooo   oooooo     oooo            .o8       oooooo     oooo            o8o                      
-//  `888.    `888.     .8'            "888        `888.     .8'             `"'                      
-//   `888.   .8888.   .8'    .ooooo.   888oooo.    `888.   .8'    .ooooo.  oooo   .ooooo.   .ooooo.  
-//    `888  .8'`888. .8'    d88' `88b  d88' `88b    `888. .8'    d88' `88b `888  d88' `"Y8 d88' `88b 
-//     `888.8'  `888.8'     888ooo888  888   888     `888.8'     888   888  888  888       888ooo888 
-//      `888'    `888'      888    .o  888   888      `888'      888   888  888  888   .o8 888    .o 
-//       `8'      `8'       `Y8bod8P'  `Y8bod8P'       `8'       `Y8bod8P' o888o `Y8bod8P' `Y8bod8P' 
+// oooooo   oooooo     oooo            .o8       oooooo     oooo            o8o
+//  `888.    `888.     .8'            "888        `888.     .8'             `"'
+//   `888.   .8888.   .8'    .ooooo.   888oooo.    `888.   .8'    .ooooo.  oooo   .ooooo.   .ooooo.
+//    `888  .8'`888. .8'    d88' `88b  d88' `88b    `888. .8'    d88' `88b `888  d88' `"Y8 d88' `88b
+//     `888.8'  `888.8'     888ooo888  888   888     `888.8'     888   888  888  888       888ooo888
+//      `888'    `888'      888    .o  888   888      `888'      888   888  888  888   .o8 888    .o
+//       `8'      `8'       `Y8bod8P'  `Y8bod8P'       `8'       `Y8bod8P' o888o `Y8bod8P' `Y8bod8P'
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 webVoice = {};
@@ -60,26 +60,26 @@ webVoice.init = function(fnOnStart, fnOnEnd, fnOnResult, fnOnError, bContinuous,
 
 
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ooooooooo.         .o.       ooooooooo.    .oooooo..o oooooooooooo ooooooooo.   
-// `888   `Y88.      .888.      `888   `Y88. d8P'    `Y8 `888'     `8 `888   `Y88. 
-//  888   .d88'     .8"888.      888   .d88' Y88bo.       888          888   .d88' 
-//  888ooo88P'     .8' `888.     888ooo88P'   `"Y8888o.   888oooo8     888ooo88P'  
-//  888           .88ooo8888.    888`88b.         `"Y88b  888    "     888`88b.    
-//  888          .8'     `888.   888  `88b.  oo     .d8P  888       o  888  `88b.  
-// o888o        o88o     o8888o o888o  o888o 8""88888P'  o888ooooood8 o888o  o888o 
+// ooooooooo.         .o.       ooooooooo.    .oooooo..o oooooooooooo ooooooooo.
+// `888   `Y88.      .888.      `888   `Y88. d8P'    `Y8 `888'     `8 `888   `Y88.
+//  888   .d88'     .8"888.      888   .d88' Y88bo.       888          888   .d88'
+//  888ooo88P'     .8' `888.     888ooo88P'   `"Y8888o.   888oooo8     888ooo88P'
+//  888           .88ooo8888.    888`88b.         `"Y88b  888    "     888`88b.
+//  888          .8'     `888.   888  `88b.  oo     .d8P  888       o  888  `88b.
+// o888o        o88o     o8888o o888o  o888o 8""88888P'  o888ooooood8 o888o  o888o
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 parser = {
 
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ooooooooo.   oooooooooooo  .oooooo.o   .oooooo.   ooooo     ooo ooooooooo.     .oooooo.   oooooooooooo  .oooooo.o 
-// `888   `Y88. `888'     `8 d8P'    `Y8  d8P'  `Y8b  `888'     `8' `888   `Y88.  d8P'  `Y8b  `888'     `8 d8P'    `Y8 
-//  888   .d88'  888         Y88bo.      888      888  888       8   888   .d88' 888           888         Y88bo.      
-//  888ooo88P'   888oooo8     `"Y8888o.  888      888  888       8   888ooo88P'  888           888oooo8     `"Y8888o.  
-//  888`88b.     888    "         `"Y88b 888      888  888       8   888`88b.    888           888    "         `"Y88b 
-//  888  `88b.   888       o oo     .d8P `88b    d88'  `88.    .8'   888  `88b.  `88b    ooo   888       o oo     .d8P 
-// o888o  o888o o888ooooood8 8""88888P'   `Y8bood8P'     `YbodP'    o888o  o888o  `Y8bood8P'  o888ooooood8 8""88888P'  
+// ooooooooo.   oooooooooooo  .oooooo.o   .oooooo.   ooooo     ooo ooooooooo.     .oooooo.   oooooooooooo  .oooooo.o
+// `888   `Y88. `888'     `8 d8P'    `Y8  d8P'  `Y8b  `888'     `8' `888   `Y88.  d8P'  `Y8b  `888'     `8 d8P'    `Y8
+//  888   .d88'  888         Y88bo.      888      888  888       8   888   .d88' 888           888         Y88bo.
+//  888ooo88P'   888oooo8     `"Y8888o.  888      888  888       8   888ooo88P'  888           888oooo8     `"Y8888o.
+//  888`88b.     888    "         `"Y88b 888      888  888       8   888`88b.    888           888    "         `"Y88b
+//  888  `88b.   888       o oo     .d8P `88b    d88'  `88.    .8'   888  `88b.  `88b    ooo   888       o oo     .d8P
+// o888o  o888o o888ooooood8 8""88888P'   `Y8bood8P'     `YbodP'    o888o  o888o  `Y8bood8P'  o888ooooood8 8""88888P'
 // Resources /////////////////////////////////////////////////////////////////////////////////////////////////////////
 resources = {
   resourcesPending: 0,
@@ -181,13 +181,13 @@ resources = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// oooooooooo.  ooooo        ooooo     ooo oooooooooooo ooooooooo.   ooooooooo.   ooooo ooooo      ooo ooooooooooooo  .oooooo.o 
-// `888'   `Y8b `888'        `888'     `8' `888'     `8 `888   `Y88. `888   `Y88. `888' `888b.     `8' 8'   888   `8 d8P'    `Y8 
-//  888     888  888          888       8   888          888   .d88'  888   .d88'  888   8 `88b.    8       888      Y88bo.      
-//  888oooo888'  888          888       8   888oooo8     888ooo88P'   888ooo88P'   888   8   `88b.  8       888       `"Y8888o.  
-//  888    `88b  888          888       8   888    "     888          888`88b.     888   8     `88b.8       888           `"Y88b 
-//  888    .88P  888       o  `88.    .8'   888       o  888          888  `88b.   888   8       `888       888      oo     .d8P 
-// o888bood8P'  o888ooooood8    `YbodP'    o888ooooood8 o888o        o888o  o888o o888o o8o        `8      o888o     8""88888P'  
+// oooooooooo.  ooooo        ooooo     ooo oooooooooooo ooooooooo.   ooooooooo.   ooooo ooooo      ooo ooooooooooooo  .oooooo.o
+// `888'   `Y8b `888'        `888'     `8' `888'     `8 `888   `Y88. `888   `Y88. `888' `888b.     `8' 8'   888   `8 d8P'    `Y8
+//  888     888  888          888       8   888          888   .d88'  888   .d88'  888   8 `88b.    8       888      Y88bo.
+//  888oooo888'  888          888       8   888oooo8     888ooo88P'   888ooo88P'   888   8   `88b.  8       888       `"Y8888o.
+//  888    `88b  888          888       8   888    "     888          888`88b.     888   8     `88b.8       888           `"Y88b
+//  888    .88P  888       o  `88.    .8'   888       o  888          888  `88b.   888   8       `888       888      oo     .d8P
+// o888bood8P'  o888ooooood8    `YbodP'    o888ooooood8 o888o        o888o  o888o o888o o8o        `8      o888o     8""88888P'
 // Blueprints //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Usage:
 //
@@ -287,13 +287,13 @@ blueprints = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//   .oooooo.     .oooooo.   ooo        ooooo ooooooooo.     .oooooo.   ooooo      ooo oooooooooooo ooooo      ooo ooooooooooooo  .oooooo.o 
-//  d8P'  `Y8b   d8P'  `Y8b  `88.       .888' `888   `Y88.  d8P'  `Y8b  `888b.     `8' `888'     `8 `888b.     `8' 8'   888   `8 d8P'    `Y8 
-// 888          888      888  888b     d'888   888   .d88' 888      888  8 `88b.    8   888          8 `88b.    8       888      Y88bo.      
-// 888          888      888  8 Y88. .P  888   888ooo88P'  888      888  8   `88b.  8   888oooo8     8   `88b.  8       888       `"Y8888o.  
-// 888          888      888  8  `888'   888   888         888      888  8     `88b.8   888    "     8     `88b.8       888           `"Y88b 
-// `88b    ooo  `88b    d88'  8    Y     888   888         `88b    d88'  8       `888   888       o  8       `888       888      oo     .d8P 
-//  `Y8bood8P'   `Y8bood8P'  o8o        o888o o888o         `Y8bood8P'  o8o        `8  o888ooooood8 o8o        `8      o888o     8""88888P'  
+//   .oooooo.     .oooooo.   ooo        ooooo ooooooooo.     .oooooo.   ooooo      ooo oooooooooooo ooooo      ooo ooooooooooooo  .oooooo.o
+//  d8P'  `Y8b   d8P'  `Y8b  `88.       .888' `888   `Y88.  d8P'  `Y8b  `888b.     `8' `888'     `8 `888b.     `8' 8'   888   `8 d8P'    `Y8
+// 888          888      888  888b     d'888   888   .d88' 888      888  8 `88b.    8   888          8 `88b.    8       888      Y88bo.
+// 888          888      888  8 Y88. .P  888   888ooo88P'  888      888  8   `88b.  8   888oooo8     8   `88b.  8       888       `"Y8888o.
+// 888          888      888  8  `888'   888   888         888      888  8     `88b.8   888    "     8     `88b.8       888           `"Y88b
+// `88b    ooo  `88b    d88'  8    Y     888   888         `88b    d88'  8       `888   888       o  8       `888       888      oo     .d8P
+//  `Y8bood8P'   `Y8bood8P'  o8o        o888o o888o         `Y8bood8P'  o8o        `8  o888ooooood8 o8o        `8      o888o     8""88888P'
 // Components //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // All components must define 'spawn', and 'destroy' functions in order
 // to be correctly added/removed by the 'blueprint' object.
@@ -332,7 +332,7 @@ jb.stateMachines = {
 
       that.smCurrentState = state;
 
-      if (that.smCurrentState) {      
+      if (that.smCurrentState) {
         if (that.smCurrentState.enter) {
           that.smCurrentState.enter.call(that);
         }
@@ -730,19 +730,19 @@ jb.sprites = {
       }
 
       // DEBUG ////////////////////////
-      ctxt.beginPath();
-      ctxt.fillStyle = "red";
-      ctxt.fillRect(centerX - 2, centerY - 2, 4, 4);
-      ctxt.fillStyle = "blue";
-      ctxt.fillRect(destX - 2, destY - 2, 4, 4);
-      ctxt.closePath();
-      ctxt.stroke();
+      // ctxt.beginPath();
+      // ctxt.fillStyle = "red";
+      // ctxt.fillRect(centerX - 2, centerY - 2, 4, 4);
+      // ctxt.fillStyle = "blue";
+      // ctxt.fillRect(destX - 2, destY - 2, 4, 4);
+      // ctxt.closePath();
+      // ctxt.stroke();
       // END DEBUG ////////////////////
 
       // DEBUG ////////////////////////
-      if (this.bounds) {
-        this.bounds.draw("yellow", jb.ctxt);
-      }
+      // if (this.bounds) {
+      //   this.bounds.draw("yellow", jb.ctxt);
+      // }
       // END DEBUG ////////////////////
     }
   }
@@ -861,7 +861,7 @@ jb.transitions = {
 
     duration *= 1000;
 
-    // See if this transition state already exists for us.    
+    // See if this transition state already exists for us.
     newTransition = this.transitionStates[name];
 
     if (!newTransition) {
@@ -989,7 +989,7 @@ jb.touchables = {
       for (i=0; i<jb.touchables.instances.length; ++i) {
           if (instance.touchLayer <= jb.touchables.instances[i].touchLayer) {
               // Insert the instance at this point.
-              // TODO: replace 'splice' with an optimizable function.                
+              // TODO: replace 'splice' with an optimizable function.
               jb.touchables.splice(i, 0, instance);
               bInserted = true;
               break;
@@ -1101,7 +1101,7 @@ jb.swipeables = {
       for (i=0; i<jb.swipeables.instances.length; ++i) {
           if (instance.swipeLayer <= jb.swipeables.instances[i].swipeLayer) {
               // Insert the instance at this point.
-              // TODO: replace 'splice' with an optimizable function.                
+              // TODO: replace 'splice' with an optimizable function.
               jb.swipeables.splice(i, 0, instance);
               bInserted = true;
               break;
@@ -1125,13 +1125,13 @@ jb.swipeables = {
 blueprints.mixins["swipeable"] = jb.swipeables;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-// ooooo   ooooo oooooooooooo ooooo        ooooooooo.   oooooooooooo ooooooooo.    .oooooo.o 
-// `888'   `888' `888'     `8 `888'        `888   `Y88. `888'     `8 `888   `Y88. d8P'    `Y8 
-//  888     888   888          888          888   .d88'  888          888   .d88' Y88bo.      
-//  888ooooo888   888oooo8     888          888ooo88P'   888oooo8     888ooo88P'   `"Y8888o.  
-//  888     888   888    "     888          888          888    "     888`88b.         `"Y88b 
-//  888     888   888       o  888       o  888          888       o  888  `88b.  oo     .d8P 
-// o888o   o888o o888ooooood8 o888ooooood8 o888o        o888ooooood8 o888o  o888o 8""88888P'  
+// ooooo   ooooo oooooooooooo ooooo        ooooooooo.   oooooooooooo ooooooooo.    .oooooo.o
+// `888'   `888' `888'     `8 `888'        `888   `Y88. `888'     `8 `888   `Y88. d8P'    `Y8
+//  888     888   888          888          888   .d88'  888          888   .d88' Y88bo.
+//  888ooooo888   888oooo8     888          888ooo88P'   888oooo8     888ooo88P'   `"Y8888o.
+//  888     888   888    "     888          888          888    "     888`88b.         `"Y88b
+//  888     888   888       o  888       o  888          888       o  888  `88b.  oo     .d8P
+// o888o   o888o o888ooooood8 o888ooooood8 o888o        o888ooooood8 o888o  o888o 8""88888P'
 // Helpers //////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1307,13 +1307,13 @@ jb.randomizeArray = function(array) {
 }());
 
 ///////////////////////////////////////////////////////////////////////////////
-// ooo        ooooo       .o.       ooooooooooooo ooooo   ooooo 
-// `88.       .888'      .888.      8'   888   `8 `888'   `888' 
-//  888b     d'888      .8"888.          888       888     888  
-//  8 Y88. .P  888     .8' `888.         888       888ooooo888  
-//  8  `888'   888    .88ooo8888.        888       888     888  
-//  8    Y     888   .8'     `888.       888       888     888  
-// o8o        o888o o88o     o8888o     o888o     o888o   o888o 
+// ooo        ooooo       .o.       ooooooooooooo ooooo   ooooo
+// `88.       .888'      .888.      8'   888   `8 `888'   `888'
+//  888b     d'888      .8"888.          888       888     888
+//  8 Y88. .P  888     .8' `888.         888       888ooooo888
+//  8  `888'   888    .88ooo8888.        888       888     888
+//  8    Y     888   .8'     `888.       888       888     888
+// o8o        o888o o88o     o8888o     o888o     o888o   o888o
 // Math ///////////////////////////////////////////////////////////////////////
 jb.MathEx = {};
 
@@ -1475,7 +1475,7 @@ jb.MathEx.calcNaturalCubic = function(values, component, cubics) {
    }
 
    /*
-        now compute the coefficients of the cubics 
+        now compute the coefficients of the cubics
    */
    cubics.length = 0;
 
@@ -1484,8 +1484,8 @@ jb.MathEx.calcNaturalCubic = function(values, component, cubics) {
       p1 = values[i+1][component];
 
       cubics.push(new jb.MathEx.cubic(
-                     p0, 
-                     D[i], 
+                     p0,
+                     D[i],
                      3*(p1 - p0) - 2*D[i] - D[i+1],
                      2*(p0 - p1) +   D[i] + D[i+1]
                    )
@@ -1568,13 +1568,13 @@ jb.MathEx.Spline3D.prototype.getPoint = function(position) {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ooo        ooooo oooooooooooo  .oooooo..o  .oooooo..o       .o.         .oooooo.    oooooooooooo  .oooooo..o      
-// `88.       .888' `888'     `8 d8P'    `Y8 d8P'    `Y8      .888.       d8P'  `Y8b   `888'     `8 d8P'    `Y8      
-//  888b     d'888   888         Y88bo.      Y88bo.          .8"888.     888            888         Y88bo.           
-//  8 Y88. .P  888   888oooo8     `"Y8888o.   `"Y8888o.     .8' `888.    888            888oooo8     `"Y8888o.       
-//  8  `888'   888   888    "         `"Y88b      `"Y88b   .88ooo8888.   888     ooooo  888    "         `"Y88b      
-//  8    Y     888   888       o oo     .d8P oo     .d8P  .8'     `888.  `88.    .88'   888       o oo     .d8P      
-// o8o        o888o o888ooooood8 8""88888P'  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8 8""88888P' 
+// ooo        ooooo oooooooooooo  .oooooo..o  .oooooo..o       .o.         .oooooo.    oooooooooooo  .oooooo..o
+// `88.       .888' `888'     `8 d8P'    `Y8 d8P'    `Y8      .888.       d8P'  `Y8b   `888'     `8 d8P'    `Y8
+//  888b     d'888   888         Y88bo.      Y88bo.          .8"888.     888            888         Y88bo.
+//  8 Y88. .P  888   888oooo8     `"Y8888o.   `"Y8888o.     .8' `888.    888            888oooo8     `"Y8888o.
+//  8  `888'   888   888    "         `"Y88b      `"Y88b   .88ooo8888.   888     ooooo  888    "         `"Y88b
+//  8    Y     888   888       o oo     .d8P oo     .d8P  .8'     `888.  `88.    .88'   888       o oo     .d8P
+// o8o        o888o o888ooooood8 8""88888P'  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8 8""88888P'
 // Messages ///////////////////////////////////////////////////////////////////////////////////////////////////
 jb.messages = {
   registry: {},
@@ -1654,16 +1654,16 @@ jb.messages = {
       }
     }
   }
-}    
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-// ooooooooooooo oooooo   oooo ooooooooo.   oooooooooooo  .oooooo.o 
-// 8'   888   `8  `888.   .8'  `888   `Y88. `888'     `8 d8P'    `Y8 
-//      888        `888. .8'    888   .d88'  888         Y88bo.      
-//      888         `888.8'     888ooo88P'   888oooo8     `"Y8888o.  
-//      888          `888'      888          888    "         `"Y88b 
-//      888           888       888          888       o oo     .d8P 
-//     o888o         o888o     o888o        o888ooooood8 8""88888P'  
+// ooooooooooooo oooooo   oooo ooooooooo.   oooooooooooo  .oooooo.o
+// 8'   888   `8  `888.   .8'  `888   `Y88. `888'     `8 d8P'    `Y8
+//      888        `888. .8'    888   .d88'  888         Y88bo.
+//      888         `888.8'     888ooo88P'   888oooo8     `"Y8888o.
+//      888          `888'      888          888    "         `"Y88b
+//      888           888       888          888       o oo     .d8P
+//     o888o         o888o     o888o        o888ooooood8 8""88888P'
 // Types //////////////////////////////////////////////////////////////////////
 jb.bounds = function(left, top, width, height) {
     this.set(left, top, width, height);
@@ -1843,13 +1843,13 @@ jb.bounds.prototype.intersection = function(other, result) {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// oooooo     oooo ooo        ooooo 
-//  `888.     .8'  `88.       .888' 
-//   `888.   .8'    888b     d'888  
-//    `888. .8'     8 Y88. .P  888  
-//     `888.8'      8  `888'   888  
-//      `888'       8    Y     888  
-//       `8'       o8o        o888o 
+// oooooo     oooo ooo        ooooo
+//  `888.     .8'  `88.       .888'
+//   `888.   .8'    888b     d'888
+//    `888. .8'     8 Y88. .P  888
+//     `888.8'      8  `888'   888
+//      `888'       8    Y     888
+//       `8'       o8o        o888o
 // Virtual Machine /////////////////////////////////////////////////////////////
 jb.instructions     = []
 jb.bStarted         = false;
@@ -2120,13 +2120,13 @@ jb.timerLast = function(timerName) {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// oooooo     oooo ooooo oooooooooooo oooooo   oooooo     oooo 
-//  `888.     .8'  `888' `888'     `8  `888.    `888.     .8'  
-//   `888.   .8'    888   888           `888.   .8888.   .8'   
-//    `888. .8'     888   888oooo8       `888  .8'`888. .8'    
-//     `888.8'      888   888    "        `888.8'  `888.8'     
-//      `888'       888   888       o      `888'    `888'      
-//       `8'       o888o o888ooooood8       `8'      `8'    
+// oooooo     oooo ooooo oooooooooooo oooooo   oooooo     oooo
+//  `888.     .8'  `888' `888'     `8  `888.    `888.     .8'
+//   `888.   .8'    888   888           `888.   .8888.   .8'
+//    `888. .8'     888   888oooo8       `888  .8'`888. .8'
+//     `888.8'      888   888    "        `888.8'  `888.8'
+//      `888'       888   888       o      `888'    `888'
+//       `8'       o888o o888ooooood8       `8'      `8'
 // View ////////////////////////////////////////////////////////////////////////
 // Get canvas and resize to fit window.
 jb.NEWLINE = "`";
@@ -2207,7 +2207,7 @@ jb.createCanvas = function(width, height, fill) {
       newContext.clearRect(0, 0, newCanvas.width, newCanvas.height);
     }
 
-  return {canvas: newCanvas, context: newContext};    
+  return {canvas: newCanvas, context: newContext};
 };
 jb.drawImage = function(ctxt, image, xa, ya, anchorX, anchorY) {
   var x = xa - anchorX * image.width,
@@ -2432,14 +2432,14 @@ jb.drawOpenTypeFontAt = function(ctxt, text, x, y, strokeColor, fillColor, hAlig
       xFinal = 0,
       yFinal = 0;
 
-  vAlign = vAlign || jb.OPEN_TYPE_FONT_DEFAULT_VALIGN;
-  hAlign = hAlign || jb.OPEN_TYPE_FONT_DEFAULT_HALIGN;
+  vAlign = (typeof vAlign === 'undefined') ? jb.OPEN_TYPE_FONT_DEFAULT_VALIGN : vAlign;
+  hAlign = (typeof hAlign === 'undefined') ? jb.OPEN_TYPE_FONT_DEFAULT_HALIGN : hAlign;
 
   if (jb.openTypeFont && jb.openTypeFont && text) {
     jb.measureOpenTypeText(text);
 
     xFinal = x - hAlign * jb.openTypeFontMetrics.width;
-    yFinal = y - (1.0 - vAlign) * jb.openTypeFontMetrics.fontBoundingBoxAscent;
+    yFinal = y + (1 - vAlign) * jb.openTypeFontMetrics.fontBoundingBoxAscent;
     path = jb.openTypeFont.getPath(text, xFinal, yFinal, jb.openTypeFontSize);
 
     ctxt.save();
@@ -2545,13 +2545,13 @@ jb.printAt = function(text, newRow, newCol) {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// ooooo ooooo      ooo ooooooooo.   ooooo     ooo ooooooooooooo 
-// `888' `888b.     `8' `888   `Y88. `888'     `8' 8'   888   `8 
-//  888   8 `88b.    8   888   .d88'  888       8       888      
-//  888   8   `88b.  8   888ooo88P'   888       8       888      
-//  888   8     `88b.8   888          888       8       888      
-//  888   8       `888   888          `88.    .8'       888      
-// o888o o8o        `8  o888o           `YbodP'        o888o     
+// ooooo ooooo      ooo ooooooooo.   ooooo     ooo ooooooooooooo
+// `888' `888b.     `8' `888   `Y88. `888'     `8' 8'   888   `8
+//  888   8 `88b.    8   888   .d88'  888       8       888
+//  888   8   `88b.  8   888ooo88P'   888       8       888
+//  888   8     `88b.8   888          888       8       888
+//  888   8       `888   888          `88.    .8'       888
+// o888o o8o        `8  o888o           `YbodP'        o888o
 // Input ///////////////////////////////////////////////////////////////////////
 jb.normal = {last: null, down:{}};
 jb.special = {last: null, down: {}};
@@ -3050,13 +3050,13 @@ window.addEventListener("touchmove", jb.touchMove, true);
 window.addEventListener("touchend", jb.touchEnd, true);
 
 ////////////////////////////////////////////////////////////////////////////////
-// oooooooooooo   .oooooo.   ooooo      ooo ooooooooooooo  .oooooo.o 
-// `888'     `8  d8P'  `Y8b  `888b.     `8' 8'   888   `8 d8P'    `Y8 
-//  888         888      888  8 `88b.    8       888      Y88bo.      
-//  888oooo8    888      888  8   `88b.  8       888       `"Y8888o.  
-//  888    "    888      888  8     `88b.8       888           `"Y88b 
-//  888         `88b    d88'  8       `888       888      oo     .d8P 
-// o888o         `Y8bood8P'  o8o        `8      o888o     8""88888P'  
+// oooooooooooo   .oooooo.   ooooo      ooo ooooooooooooo  .oooooo.o
+// `888'     `8  d8P'  `Y8b  `888b.     `8' 8'   888   `8 d8P'    `Y8
+//  888         888      888  8 `88b.    8       888      Y88bo.
+//  888oooo8    888      888  8   `88b.  8       888       `"Y8888o.
+//  888    "    888      888  8     `88b.8       888           `"Y88b
+//  888         `88b    d88'  8       `888       888      oo     .d8P
+// o888o         `Y8bood8P'  o8o        `8      o888o     8""88888P'
 // FONTS ///////////////////////////////////////////////////////////////////////
 // Fonts are bitmapped character sets. They default to 16x16 size and can be
 // scaled in integer amounts.
@@ -3078,13 +3078,13 @@ jb.fonts = {
         scale = scale || 1;
         scale = Math.round(scale);
 
-        if (text && charSet) {   
+        if (text && charSet) {
             if (charSet.bCaseless) {
                 text = text.toUpperCase();
             }
 
             // Compensate for desired alignment.
-            y += scale * this.DEFAULT_SIZE * (0.5 + (vAlign - 0.5)); 
+            y += scale * this.DEFAULT_SIZE * (0.5 + (vAlign - 0.5));
             x -= scale * this.DEFAULT_SIZE * text.length * (0.5 + (hAlign - 0.5));
 
             ctxt.save();
@@ -3119,7 +3119,7 @@ jb.fonts = {
     },
 
     print: function(fontName, text, color, hAlign, vAlign, scale) {
-        jb.fonts.printAt(fontName, jb.row + 1, jb.col + 1, text, color, hAlign, vAlign, scale);        
+        jb.fonts.printAt(fontName, jb.row + 1, jb.col + 1, text, color, hAlign, vAlign, scale);
     },
 
     printAt: function(fontName, newRow, newCol, text, color, hAlign, vAlign, scale) {
@@ -3131,7 +3131,7 @@ jb.fonts = {
 
         charSet = jb.fonts[fontName];
 
-        if (text && charSet) {   
+        if (text && charSet) {
             cr = text.indexOf(jb.NEWLINE) === text.length - 1;
 
             if (newRow > 0) {
@@ -5838,13 +5838,13 @@ jb.fonts = {
 };
 
 //////////////////////////////////////////////////////////////////////////////////
-//   .oooooo.    ooooo        oooooo   oooo ooooooooo.   ooooo   ooooo  .oooooo.o 
-//  d8P'  `Y8b   `888'         `888.   .8'  `888   `Y88. `888'   `888' d8P'    `Y8 
-// 888            888           `888. .8'    888   .d88'  888     888  Y88bo.      
-// 888            888            `888.8'     888ooo88P'   888ooooo888   `"Y8888o.  
-// 888     ooooo  888             `888'      888          888     888       `"Y88b 
-// `88.    .88'   888       o      888       888          888     888  oo     .d8P 
-//  `Y8bood8P'   o888ooooood8     o888o     o888o        o888o   o888o 8""88888P'  
+//   .oooooo.    ooooo        oooooo   oooo ooooooooo.   ooooo   ooooo  .oooooo.o
+//  d8P'  `Y8b   `888'         `888.   .8'  `888   `Y88. `888'   `888' d8P'    `Y8
+// 888            888           `888. .8'    888   .d88'  888     888  Y88bo.
+// 888            888            `888.8'     888ooo88P'   888ooooo888   `"Y8888o.
+// 888     ooooo  888             `888'      888          888     888       `"Y88b
+// `88.    .88'   888       o      888       888          888     888  oo     .d8P
+//  `Y8bood8P'   o888ooooood8     o888o     o888o        o888o   o888o 8""88888P'
 // GLYPHS ////////////////////////////////////////////////////////////////////////
 // Glyphs are pre-defined images that can be used for games and such.
 // Glyphs are defined in code using an array of strings, where each
@@ -6223,7 +6223,7 @@ jb.glyphs = {
                         ".,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,",
             ],
         },
-        destroyerRight: {  
+        destroyerRight: {
             image: null,   // Built when first instance is created
             defaultBounds: null,    // Built when queried
             pixelData: [
@@ -6395,7 +6395,7 @@ jb.glyphs = {
                          ".,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,",
              ],
          },
-         knight: {  
+         knight: {
             image: null,   // Built when first instance is created
             defaultBounds: null,    // Built when queried
             pixelData: [
@@ -6417,7 +6417,7 @@ jb.glyphs = {
                         ".,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,",
             ],
         },
-         thief: {  
+         thief: {
             image: null,   // Built when first instance is created
             defaultBounds: null,    // Built when queried
             pixelData: [
@@ -6439,7 +6439,7 @@ jb.glyphs = {
                         ".,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,",
             ],
         },
-         cleric: {  
+         cleric: {
             image: null,   // Built when first instance is created
             defaultBounds: null,    // Built when queried
             pixelData: [
@@ -6461,7 +6461,7 @@ jb.glyphs = {
                         ".,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,",
             ],
         },
-         mage: {  
+         mage: {
             image: null,   // Built when first instance is created
             defaultBounds: null,    // Built when queried
             pixelData: [
@@ -7885,22 +7885,22 @@ jb.glyphs = {
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-// oooooooooooo  oooooooooooo   .oooooo.    oooo                         oooo                 
-// `888'     `8 d'""""""d888'  d8P'  `Y8b   `888                         `888                 
-//  888               .888P   888            888  oooo    ooo oo.ooooo.   888 .oo.    .oooo.o 
-//  888oooo8         d888'    888            888   `88.  .8'   888' `88b  888P"Y88b  d88(  "8 
-//  888    "       .888P      888     ooooo  888    `88..8'    888   888  888   888  `"Y88b.  
-//  888       o   d888'    .P `88.    .88'   888     `888'     888   888  888   888  o.  )88b 
-// o888ooooood8 .8888888888P   `Y8bood8P'   o888o     .8'      888bod8P' o888o o888o 8""888P' 
-//                                                .o..P'       888                            
-//                                                `Y8P'       o888o                           
+// oooooooooooo  oooooooooooo   .oooooo.    oooo                         oooo
+// `888'     `8 d'""""""d888'  d8P'  `Y8b   `888                         `888
+//  888               .888P   888            888  oooo    ooo oo.ooooo.   888 .oo.    .oooo.o
+//  888oooo8         d888'    888            888   `88.  .8'   888' `88b  888P"Y88b  d88(  "8
+//  888    "       .888P      888     ooooo  888    `88..8'    888   888  888   888  `"Y88b.
+//  888       o   d888'    .P `88.    .88'   888     `888'     888   888  888   888  o.  )88b
+// o888ooooood8 .8888888888P   `Y8bood8P'   o888o     .8'      888bod8P' o888o o888o 8""888P'
+//                                                .o..P'       888
+//                                                `Y8P'       o888o
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  *  Allows programmers to define views using preset shapes called "glyphs". These are
  *  meant to be an approximation of Commodore 64 keyboard graphics.
  *
- *  Glyphs render into a bitmap using two structures: shape data, and color 
+ *  Glyphs render into a bitmap using two structures: shape data, and color
  *
  *  ShapeData consists of a 1D array of strings. Each string consists of n
  *  elements, each 2 chars. The first char represents the glyph as a direct
@@ -8168,7 +8168,7 @@ jb.EZglyphs = {
                 gfx.fillStyle = this.palettes[pal][bc];
                 gfx.fillRect(0, 0, this.cellSize, this.cellSize);
               }
-            }              
+            }
 
             // Draw the cell foreground.
             if (rot !== NaN && glyph) {
@@ -8201,13 +8201,13 @@ jb.EZglyphs = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-//  .oooooo.o   .oooooo.   ooooo     ooo ooooo      ooo oooooooooo.   
-// d8P'    `Y8  d8P'  `Y8b  `888'     `8' `888b.     `8' `888'   `Y8b  
-// Y88bo.      888      888  888       8   8 `88b.    8   888      888 
-//  `"Y8888o.  888      888  888       8   8   `88b.  8   888      888 
-//      `"Y88b 888      888  888       8   8     `88b.8   888      888 
-// oo     .d8P `88b    d88'  `88.    .8'   8       `888   888     d88' 
-// 8""88888P'   `Y8bood8P'     `YbodP'    o8o        `8  o888bood8P'   
+//  .oooooo.o   .oooooo.   ooooo     ooo ooooo      ooo oooooooooo.
+// d8P'    `Y8  d8P'  `Y8b  `888'     `8' `888b.     `8' `888'   `Y8b
+// Y88bo.      888      888  888       8   8 `88b.    8   888      888
+//  `"Y8888o.  888      888  888       8   8   `88b.  8   888      888
+//      `"Y88b 888      888  888       8   8     `88b.8   888      888
+// oo     .d8P `88b    d88'  `88.    .8'   8       `888   888     d88'
+// 8""88888P'   `Y8bood8P'     `YbodP'    o8o        `8  o888bood8P'
 // SOUND //////////////////////////////////////////////////////////////////////
 jb.sound = {
     DEFAULT_FREQ: 440, // Hz
