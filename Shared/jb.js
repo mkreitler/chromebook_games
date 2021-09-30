@@ -4,9 +4,14 @@ jb = {
     execStack: [],
     assert: function(test, msg) {
         if (!test) {
-            console.log(msg);
+            this.logToConsole(msg);
             debugger;
         }
+    },
+
+    logToConsole: function(text) {
+      // TODO: prevent console.log from executing on unsupported browsers.
+      console.log(text);
     }
 };
 

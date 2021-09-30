@@ -67,11 +67,10 @@ jb.program = {
     
     this.choices = ["New Game", "Continue", "Credits"];
     this.choice = 0;
+    toy.menu.init(this.fontMain, this.WIDTH / 2, this.HEIGHT * 3 / 5, null, this.choices, 0, "white", "gray", this.FONT_SIZE);
   },
   
   do_showSplashPage: function() {
-    var doExit = jb.got === "return";
-    
     jb.ctxt.fillStyle = "black";
     jb.clear();
     jb.setOpenTypeFont(this.fontLarge, this.FONT_SIZE);
@@ -82,30 +81,10 @@ jb.program = {
     this.splash.charRight.spriteUpdate();
     this.splash.charLeft.spriteDraw();
     this.splash.charRight.spriteDraw();
-    
-    jb.setOpenTypeFont(this.fontMain, this.FONT_SIZE);
-    this.choices.forEach(function(entry) {
-      var index = this.choices.indexOf(entry);
-      if (entry === this.choices[this.choice]) {
-        jb.drawOpenTypeFontAt(jb.ctxt, "> " + entry + " <", this.WIDTH / 2, this.HEIGHT * 3 / 5 + this.FONT_SIZE * index, "white", "white", 0.5, 1.0);
-      }
-      else {
-        jb.drawOpenTypeFontAt(jb.ctxt, entry, this.WIDTH / 2, this.HEIGHT * 3 / 5 + this.FONT_SIZE * index, "gray", "gray", 0.5, 1.0);
-      }
-    }.bind(this));
-    
-    if (jb.got === "up") {
-      this.choice -= 1;
-      if (this.choice < 0) this.choice += this.choices.length;
-    }
-    else if (jb.got === "down") {
-      this.choice += 1;
-      this.choice = this.choice % this.choices.length;
-    }
-    
-    jb.reset();
+
+    this.choice = toy.menu.update();
   
-    jb.while(!doExit);
+    jb.while(this.choice < 0);
   },
   
   checkPlayerChoice: function() {

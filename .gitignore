@@ -6,5 +6,6 @@ Shared/fantasy_art/icons_svg
 Shared/fantasy_art/src
 Shared/fantasy_art/TMX_Source
 Shared/fantasy_art/*.txt
-
+*.code-workspace
+pat.txt
 
