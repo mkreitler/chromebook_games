@@ -34,11 +34,13 @@ jb.program.charCreate = function() {
 
   toy.charCreate.setStep("str_agl_01");
   var charCreateStep = toy.charCreate.getStepData();
-  toy.menu.init(this.fontMain, 0, 0, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
+  toy.menu.init(this.fontMain, 0, 100, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
 };
 
 jb.program.do_CharCreateStorySelect = function() {
   jb.clear();
+
+  jb.drawGradientRect(jb.ctxt, 0, 0, this.WIDTH, 100, true);
 
   var charCreateDone = false;
   var choice = toy.menu.update();
@@ -53,7 +55,7 @@ jb.program.do_CharCreateStorySelect = function() {
     if (!charCreateDone) {
       toy.charCreate.setStep(nextStep);
       charCreateStep = toy.charCreate.getStepData();
-      toy.menu.init(this.fontMain, 0, 0, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
+      toy.menu.init(this.fontMain, 0, 100, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
     }
   }
 

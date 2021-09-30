@@ -511,8 +511,8 @@ jb.sprites = {
 
   addSheet: function(name, srcImg, left, top, cellDx, cellDy) {
     var sheet = null;
-    var cols = (srcImg.width - left + 1) / (cellDx | 8);
-    var rows = (srcImg.height - top + 1) / (cellDy | 8);
+    var cols = (srcImg.width - left) / (cellDx | 8);
+    var rows = (srcImg.height - top) / (cellDy | 8);
 
     if (this.sheets[name]) {
       sheet = this.sheets[name];
@@ -2244,6 +2244,27 @@ jb.drawImageNormalized = function(image, nx, ny, anchorX, anchorY) {
     y = Math.round(y - ay * image.height);
 
     jb.ctxt.drawImage(image, x, y);
+};
+jb.drawGradientRect = function(ctxt, x, y, w, h, isVertical, colorStops) {
+  colorStops = colorStops || [{fraction: 0.0, color: "blue"}, {fraction: 1.0, color: "black"}];
+  ctxt = ctxt || jb.ctxt;
+
+  var grad = null;
+  if (isVertical) {
+    grad = ctxt.createLinearGradient(0, 0, 0, h);
+  }
+  else {
+    grad = ctxt.createLinearGradient(0, 0, w, 0);
+  }
+
+  if (colorStops && colorStops instanceof Array) {
+    for (var i=0; i<colorStops.length; ++i) {
+      grad.addColorStop(colorStops[i].fraction, colorStops[i].color);
+    }
+  }
+
+  jb.ctxt.fillStyle = grad;
+  jb.ctxt.fillRect(x, y, w, h);
 };
 jb.drawRoundedRect = function(ctxt, x, y, w, h, r, borderColor, fillColor, borderWidth) {
   ctxt.save();
