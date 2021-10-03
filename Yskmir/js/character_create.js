@@ -12,6 +12,7 @@
   step: null,
   storyChoice: 0,
   testTiles: null,
+  TEXT_TOP: 212,
 
   reset: function() {
     this.step = null;
@@ -36,15 +37,20 @@ jb.program.charCreate = function() {
 
   toy.charCreate.setStep("str_agl_01");
   var charCreateStep = toy.charCreate.getStepData();
-  toy.menu.init(this.fontMain, 0, 100, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
+  toy.menu.init(this.fontMain, 0, toy.charCreate.TEXT_TOP, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
 };
 
 jb.program.do_CharCreateStorySelect = function() {
+  jb.ctxt.save();
   jb.clear();
 
-  jb.drawGradientRect(jb.ctxt, 0, 0, this.WIDTH, 100, true);
+  jb.drawGradientRect(jb.ctxt, 0, 0, this.WIDTH, toy.charCreate.TEXT_TOP - 1, true, [{fraction: 0.0, color: "#000088"}, {fraction: 0.75, color: "black"}]);
+  jb.ctxt.restore();
   
-  toy.scenes.drawAt(jb.ctxt, "wallsAndFloors", 0, 0, 2, toy.charCreate.testTiles, 0);
+  // toy.scenes.drawAt(jb.ctxt, "wallsAndFloors", 0, 0, 2, toy.charCreate.testTiles, 0);
+  toy.scenes.drawAt(jb.ctxt, "backdrop", 0, 100, 2, toy.scenes.sceneList.testBack, 0);
+  toy.scenes.drawAt(jb.ctxt, "actors", 0, 100 - jb.program.TILE_SIZE * 2, 2, toy.scenes.sceneList.testActors1);
+  toy.scenes.drawAt(jb.ctxt, "actors", 24, 214 - jb.program.TILE_SIZE * 2, 2, toy.scenes.sceneList.testActors2);
 
   var charCreateDone = false;
   var choice = toy.menu.update();
@@ -59,7 +65,7 @@ jb.program.do_CharCreateStorySelect = function() {
     if (!charCreateDone) {
       toy.charCreate.setStep(nextStep);
       charCreateStep = toy.charCreate.getStepData();
-      toy.menu.init(this.fontMain, 0, 100, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
+      toy.menu.init(this.fontMain, 0, toy.charCreate.TEXT_TOP, charCreateStep.text, charCreateStep.choices, 0, "white", "gray", this.FONT_SIZE);
     }
   }
 

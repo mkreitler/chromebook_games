@@ -12,6 +12,8 @@ jb.program = {
   decorations: {image: null},
   backdrop: {image: null},
   TILE_SIZE: 24,
+  BACKDROP_TILE_WIDTH: 40,
+  BACKDROP_TILE_HEIGHT: 56,
   FONT_SIZE: 48,
   FONT_SIZE_LARGE: 120,
   splash: {},
@@ -49,7 +51,7 @@ jb.program = {
     toy.sprites.init();
     toy.sprites.makeSplashSprites();
     toy.sprites.addSplashSprites();
-    toy.scenes.init(this.floorsAndWalls.image, this.decorations.image);
+    toy.scenes.init(this.floorsAndWalls.image, this.decorations.image, this.backdrop.image, toy.sprites.chars.image);
 
     this.choices = ["New Game", "Continue", "Credits"];
     this.choice = 0;

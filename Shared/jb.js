@@ -1177,9 +1177,8 @@ jb.tileSheetObj.prototype.draw = function(ctxt, destX, destY, cellRow, cellCol, 
     cellRow = Math.floor(cellRow / this.cols);
   }
 
+  ctxt.save();
   if (rotation || scaleX < 0 || scaleY < 0) {
-    ctxt.save();
-
     if (scaleX < 0) {
       offsetX = Math.round(this.cellDx * (anchorX - 0.5) * scaleX / Math.abs(scaleX));
     }
@@ -1214,9 +1213,7 @@ jb.tileSheetObj.prototype.draw = function(ctxt, destX, destY, cellRow, cellCol, 
                  Math.round(this.cellDx * scaleX),
                  Math.round(this.cellDy * scaleY));
 
-  if (rotation) {
-    ctxt.restore();
-  }
+  ctxt.restore();
 };
 
 jb.tileSheetObj.prototype.drawTile = function(ctxt, left, top, destRow, destCol, cellRow, cellCol, scaleX, scaleY) {
