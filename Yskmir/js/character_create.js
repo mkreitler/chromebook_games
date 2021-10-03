@@ -9,23 +9,25 @@
  */
  
  toy.charCreate = {
-   step: null,
-   storyChoice: 0,
+  step: null,
+  storyChoice: 0,
+  testTiles: null,
 
-   reset: function() {
+  reset: function() {
     this.step = null;
     this.storyChoice = 0;
-   },
-
-   setStep: function(stepKey) {
-     jb.assert(this.questions.hasOwnProperty(stepKey), "No character create question for key " + stepKey + "!");
-     this.step = stepKey;
-   },
-
-   getStepData: function() {
-    return this.questions[this.step];     
-   }
- };
+    this.testTiles = toy.scenes.sceneToTiles(toy.scenes.sceneList["test"]);
+  },
+  
+  setStep: function(stepKey) {
+    jb.assert(this.questions.hasOwnProperty(stepKey), "No character create question for key " + stepKey + "!");
+    this.step = stepKey;
+  },
+  
+  getStepData: function() {
+    return this.questions[this.step];
+  }
+};
 
 jb.program.charCreate = function() {
   toy.player.reset();
@@ -41,6 +43,8 @@ jb.program.do_CharCreateStorySelect = function() {
   jb.clear();
 
   jb.drawGradientRect(jb.ctxt, 0, 0, this.WIDTH, 100, true);
+  
+  toy.scenes.drawAt(jb.ctxt, "wallsAndFloors", 0, 0, 2, toy.charCreate.testTiles, 0);
 
   var charCreateDone = false;
   var choice = toy.menu.update();

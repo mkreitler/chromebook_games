@@ -511,15 +511,13 @@ jb.sprites = {
 
   addSheet: function(name, srcImg, left, top, cellDx, cellDy) {
     var sheet = null;
-    var cols = (srcImg.width - left) / (cellDx | 8);
-    var rows = (srcImg.height - top) / (cellDy | 8);
 
     if (this.sheets[name]) {
       sheet = this.sheets[name];
     }
     else {
       // Add the sheet.
-      sheet = new jb.tileSheetObj(srcImg, top, left, rows, cols, cellDx, cellDy);
+      sheet = new jb.tileSheetObj(srcImg,cellDx, cellDy, left, top);
       this.sheets[name] = sheet;
     }
 
@@ -722,12 +720,12 @@ jb.sprites = {
 
       if (typeof curState.frames[curState.frameIndex] === "number") {
         // Assume frame format of single number is 1D index into frames.
-        this.spriteInfo.sheet.draw(ctxt, destX, destY, curState.frames[curState.frameIndex], null, 0, this.spriteInfo.scale.x, this.spriteInfo.scale.y, this.spriteInfo.anchor.x, this.spriteInfo.anchor.y);
+        this.spriteInfo.sheet.draw(ctxt, destX, destY, curState.frames[curState.frameIndex], null, this.spriteInfo.scale.x, this.spriteInfo.scale.y, 0, this.spriteInfo.anchor.x, this.spriteInfo.anchor.y);
       }
       else {
         // Assume frame format of ordered pair, {rows, cols}, into frames.
         frameInfo = curState.frames[curState.frameIndex];
-        this.spriteInfo.sheet.draw(ctxt, destX, destY, frameInfo.row, frameInfo.col, 0, this.spriteInfo.scale.x, this.spriteInfo.scale.y, this.spriteInfo.anchor.x, this.spriteInfo.anchor.y);
+        this.spriteInfo.sheet.draw(ctxt, destX, destY, frameInfo.row, frameInfo.col, this.spriteInfo.scale.x, this.spriteInfo.scale.y, 0, this.spriteInfo.anchor.x, this.spriteInfo.anchor.y);
       }
 
       if (bWantsRestore) {
@@ -1142,23 +1140,38 @@ blueprints.mixins["swipeable"] = jb.swipeables;
 ///////////////////////////////////////////////////////////////////////////////
 // tileSheet Object
 ///////////////////////////////////////////////////////////////////////////////
-jb.tileSheetObj = function(source, top, left, rows, cols, cellDx, cellDy) {
+jb.tileSheetObj = function(source, cellDx, cellDy, left, top, right, bottom) {
   this.source = source;
   this.top = top;
   this.left = left;
-  this.rows = rows;
-  this.cols = cols;
   this.cellDx = cellDx;
   this.cellDy = cellDy;
+
+  if (typeof left === 'undefined') left = 0;
+  if (typeof top === 'undefined') top = 0;
+  if (typeof right === 'undefined') right = source.width - 1;
+  if (typeof bottom === 'undefined') bottom = source.height - 1;
+  
+  this.left = left;
+  this.top = top;
+
+  this.rows = (bottom - top + 1) / cellDy;
+  this.cols = (right - left + 1) / cellDx;
 };
 
-jb.tileSheetObj.prototype.draw = function(ctxt, destX, destY, cellRow, cellCol, rotation, scaleX, scaleY, anchorX, anchorY) {
+jb.tileSheetObj.prototype.draw = function(ctxt, destX, destY, cellRow, cellCol, scaleX, scaleY, rotation, anchorX, anchorY) {
   var offsetX = 0,
       offsetY = 0,
       dx = 0,
       dy = 0;
+      
+  if (typeof scaleX === 'undefined') scaleX = 1;
+  if (typeof scaleY === 'undefined') scaleY = 1;
+  if (typeof rotation === 'undefined') rotation = 0;
+  if (typeof anchorX === 'undefined') anchorX = 0;
+  if (typeof anchorY === 'undefined') anchorY = 0;
 
-  if (arguments.length < 5) {
+  if (typeof cellRow === 'undefined' || typeof cellRow === 'object') { // 'object' indicates 'null' was passed in for cellRow
     // Assume cellRow is actually a 1D array index into the sheet.
     cellCol = cellRow % this.cols;
     cellRow = Math.floor(cellRow / this.cols);

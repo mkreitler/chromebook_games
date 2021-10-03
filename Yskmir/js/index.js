@@ -8,7 +8,8 @@ jb.program = {
   HEIGHT: 768,
   fontMain: null,
   fontLarge: null,
-  inside: {image: null},
+  floorsAndWalls: {image: null},
+  decorations: {image: null},
   backdrop: {image: null},
   TILE_SIZE: 24,
   FONT_SIZE: 48,
@@ -21,7 +22,8 @@ jb.program = {
     this.fontMain = resources.loadFont(this.fontName, "../Shared", "ttf");
     this.fontLarge = resources.loadFont(this.largeFontName, "../Shared", "ttf");
     toy.sprites.chars.image = resources.loadImage("oryx_16bit_fantasy_creatures_trans.png", "../Shared/fantasy_art/");
-    this.inside.image = resources.loadImage("oryx_16bit_fantasy_world_trans.png", "../Shared/fantasy_art/");
+    this.floorsAndWalls.image = resources.loadImage("floorsAndWalls_24x24_trans.png", "../Shared/fantasy_art/");
+    this.decorations.image = resources.loadImage("decorations_interior_24x24_trans.png", "../Shared/fantasy_art/");
     this.backdrop.image = resources.loadImage("oryx_16bit_background_trans.png", "../Shared/fantasy_art/");
   },
   
@@ -47,6 +49,7 @@ jb.program = {
     toy.sprites.init();
     toy.sprites.makeSplashSprites();
     toy.sprites.addSplashSprites();
+    toy.scenes.init(this.floorsAndWalls.image, this.decorations.image);
 
     this.choices = ["New Game", "Continue", "Credits"];
     this.choice = 0;
