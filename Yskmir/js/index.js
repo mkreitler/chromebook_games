@@ -25,7 +25,7 @@ jb.program = {
     this.fontLarge = resources.loadFont(this.largeFontName, "../Shared", "ttf");
     toy.sprites.chars.image = resources.loadImage("oryx_16bit_fantasy_creatures_trans.png", "../Shared/fantasy_art/");
     this.floorsAndWalls.image = resources.loadImage("floorsAndWalls_24x24_trans.png", "../Shared/fantasy_art/");
-    this.decorations.image = resources.loadImage("decorations_interior_24x24_trans.png", "../Shared/fantasy_art/");
+    this.decorations.image = resources.loadImage("decorations_24x24_trans.png", "../Shared/fantasy_art/");
     this.backdrop.image = resources.loadImage("oryx_16bit_background_trans.png", "../Shared/fantasy_art/");
   },
   

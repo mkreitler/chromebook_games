@@ -80,7 +80,8 @@ toy.scenes = {
         for (var iCol=0; iCol<tileList[iRow].length; ++iCol) {
             var left = x + iCol * jb.program.TILE_SIZE * scale;
             var xScale = scale;
-            var tileIndex = tileList[iRow][iCol];
+            var rowIndex = tileList[iRow][iCol][0]
+            var tileIndex = tileList[iRow][iCol][1];
 
             if (tileIndex) {
                 if (tileIndex < 0) {
@@ -89,6 +90,7 @@ toy.scenes = {
                 }
 
                 tileIndex -= 1;
+                tileIndex += rowIndex * 18;
 
                 tileSetIndex = Math.floor(tileIndex / tileSet.cols);
                 tileIndex = tileIndex % tileSet.cols;
@@ -122,21 +124,70 @@ drawBackdropAt: function(ctxt, x, y, scale, tileList) {
   },
   
   sceneList: {
-    test: [
-      "********************",
-      "*  *          *    *",
-      "*      *     ***   *",
-      "*          *  *    *",
-      "********************",
-      ],
-    testBack: [
-        [[0, 2], [0, 2], [0, 6], [0, 2], [0, 6], [0, 6], [0, 7], [0, 6]],
-    ],
-    testActors1: [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, -3, 0, 0, 0, 0,   0,   0,   0,   0],
-    ],
-    testActors2: [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -7, 0, 0, 0, 145, 146,   0, 145],
-    ]
+    charCreate011: {
+        draw: function(ctxt) {
+            jb.drawGradientRect(ctxt, 0, 0, jb.program.WIDTH, toy.charCreate.TEXT_TOP - 1, true, [{fraction: 0.0, color: "#000088"}, {fraction: 0.75, color: "black"}]);
+  
+            toy.scenes.drawAt(ctxt, "backdrop", 0, 100, 2, this.testBack, 0);
+            toy.scenes.drawAt(ctxt, "actors", 0, 100 - jb.program.TILE_SIZE * 2, 2, this.testActors1);
+            toy.scenes.drawAt(ctxt, "actors", 24, 214 - jb.program.TILE_SIZE * 2, 2, this.testActors2);
+        },
+        testBack: [
+            [[0, 2], [0, 2], [0, 6], [0, 2], [0, 6], [0, 6], [0, 7], [0, 6]],
+        ],
+        testActors1: [
+            [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, -3]],
+        ],
+        testActors2: [
+            [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, -7], [0, 0], [0, 0], [0, 0], [8, 2], [8, 1], [0, 0], [8, 3]],
+        ]
+      },
+      charCreate012a: {
+        draw: function(ctxt) {
+            jb.drawGradientRect(ctxt, 0, 0, jb.program.WIDTH, toy.charCreate.TEXT_TOP - 1, true, [{fraction: 0, color: "#332200"}, {fraction: 0.125, color: "#332200"}, {fraction: 0.5, color: "#000000"}, {fraction: 0.67, color: "#000000"}, {fraction: 0.825, color: "#332200"}]);
+  
+            toy.scenes.drawAt(ctxt, "backdrop", 112, 100, 2, this.testBack, 0);
+            toy.scenes.drawAt(ctxt, "actors", 24, 214 - jb.program.TILE_SIZE * 2, 2, this.testActors1);
+        },
+        testBack: [
+            [[7, 0], [7, 4], [7, 2], [7, 3], [7, 1], [6, 6], [6, 4], [6, 5]],
+        ],
+        testActors1: [
+            [[2, 0], [2, 0], [2, 0], [2, 0], [2, 0], [2, 0], [2, 0], [2, 0], [2, 0], [0, 2]],
+        ],
+      },
+      charCreate012b: {
+        draw: function(ctxt) {
+            jb.drawGradientRect(ctxt, 0, 0, jb.program.WIDTH, toy.charCreate.TEXT_TOP, true, [{fraction: 0.0, color: "blue"}, {fraction: 0.5, color: "#8888FF"}, {fraction: 0.67, color: "#296B29"}]);
+            toy.scenes.drawAt(ctxt, "decorations", -16, toy.charCreate.TEXT_TOP - 1 - 2 * jb.program.TILE_SIZE * 2, 2, this.ground, 13);
+            toy.scenes.drawAt(ctxt, "actors", 24, toy.charCreate.TEXT_TOP - jb.program.TILE_SIZE * 5, 2, this.wrestlers);
+
+            for (var i=0; i<this.archery.length; ++i) {
+                var x = jb.program.WIDTH - 8 * jb.program.TILE_SIZE * 2 + i * jb.program.TILE_SIZE;
+                var y = toy.charCreate.TEXT_TOP - jb.program.TILE_SIZE * 5 + i * jb.program.TILE_SIZE;
+                toy.scenes.drawAt(ctxt, "actors", x, y, 2, this.archery[i].archer);
+                toy.scenes.sheets.decorations.draw(ctxt, x + jb.program.TILE_SIZE * 4 * 2, y, this.archery[i].target[0], this.archery[i].target[1], 1, 2);
+            }
+
+            // toy.scenes.drawAt(ctxt, "backdrop", 352, toy.charCreate.TEXT_TOP / 2 - jb.program.TILE_SIZE, 1, this.testBack01, 0);
+            // toy.scenes.drawAt(ctxt, "backdrop", 182, toy.charCreate.TEXT_TOP - 57, 1, this.testBack01, 0);
+        },
+        ground: [
+            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+        ],
+        testBack01: [
+            [[8, 4], [8, 4], [8, 5], [8, 4], [8, 5], [8, 5], [8, 4], [8, 5]],
+        ],
+        wrestlers: [
+            [[0, 0], [0, 0], [4, -6], [0, 0]],
+            [[0, 0], [0, 0], [0, 0], [3, 4]],
+        ],
+        archery: [
+            {archer: [[[0, -3]]], target: [6, 1]},
+            {archer: [[[0, -12]]], target: [6, 1]},
+            {archer: [[[7, -13]]], target: [6, 1]},
+        ]
+      }
   },
 };

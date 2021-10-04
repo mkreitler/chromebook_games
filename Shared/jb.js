@@ -2256,6 +2256,7 @@ jb.drawImageNormalized = function(image, nx, ny, anchorX, anchorY) {
     jb.ctxt.drawImage(image, x, y);
 };
 jb.drawGradientRect = function(ctxt, x, y, w, h, isVertical, colorStops) {
+  ctxt.save();
   colorStops = colorStops || [{fraction: 0.0, color: "blue"}, {fraction: 1.0, color: "black"}];
   ctxt = ctxt || jb.ctxt;
 
@@ -2273,8 +2274,9 @@ jb.drawGradientRect = function(ctxt, x, y, w, h, isVertical, colorStops) {
     }
   }
 
-  jb.ctxt.fillStyle = grad;
-  jb.ctxt.fillRect(x, y, w, h);
+  ctxt.fillStyle = grad;
+  ctxt.fillRect(x, y, w, h);
+  ctxt.restore();
 };
 jb.drawRoundedRect = function(ctxt, x, y, w, h, r, borderColor, fillColor, borderWidth) {
   ctxt.save();

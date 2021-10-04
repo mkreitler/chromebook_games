@@ -11,13 +11,11 @@
  toy.charCreate = {
   step: null,
   storyChoice: 0,
-  testTiles: null,
   TEXT_TOP: 212,
 
   reset: function() {
     this.step = null;
     this.storyChoice = 0;
-    this.testTiles = toy.scenes.sceneToTiles(toy.scenes.sceneList["test"]);
   },
   
   setStep: function(stepKey) {
@@ -41,22 +39,15 @@ jb.program.charCreate = function() {
 };
 
 jb.program.do_CharCreateStorySelect = function() {
-  jb.ctxt.save();
   jb.clear();
-
-  jb.drawGradientRect(jb.ctxt, 0, 0, this.WIDTH, toy.charCreate.TEXT_TOP - 1, true, [{fraction: 0.0, color: "#000088"}, {fraction: 0.75, color: "black"}]);
-  jb.ctxt.restore();
   
-  // toy.scenes.drawAt(jb.ctxt, "wallsAndFloors", 0, 0, 2, toy.charCreate.testTiles, 0);
-  toy.scenes.drawAt(jb.ctxt, "backdrop", 0, 100, 2, toy.scenes.sceneList.testBack, 0);
-  toy.scenes.drawAt(jb.ctxt, "actors", 0, 100 - jb.program.TILE_SIZE * 2, 2, toy.scenes.sceneList.testActors1);
-  toy.scenes.drawAt(jb.ctxt, "actors", 24, 214 - jb.program.TILE_SIZE * 2, 2, toy.scenes.sceneList.testActors2);
-
   var charCreateDone = false;
   var choice = toy.menu.update();
 
-  if (choice >= 0) {
-    var charCreateStep = toy.charCreate.getStepData();
+  var charCreateStep = toy.charCreate.getStepData();
+  charCreateStep.scene.draw(jb.ctxt);
+
+if (choice >= 0) {
     charCreateStep.responses[choice](toy.player);
     
     var nextStep = charCreateStep.next[choice];
@@ -102,7 +93,8 @@ toy.charCreate.questions = {
         player.traits.strength = 2;
         player.traits.agility = 1;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate011,
     next: ["str_agl_02a", "str_agl_02b"]
   },
   "str_agl_02a": {
@@ -125,7 +117,8 @@ toy.charCreate.questions = {
         player.traits.strength = -1;
         player.traits.agility = -1;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate012a,
     next: ["int_ins_01", "str_agl_03"]
   },
   "str_agl_02b": {
@@ -134,7 +127,7 @@ toy.charCreate.questions = {
       "In which event do you compete?",
       ],
     choices: [
-      "Archery context",
+      "Archery competition",
       "Wrestling contest",
       ],
     responses: [
@@ -146,7 +139,8 @@ toy.charCreate.questions = {
         player.traits.strength = 3;
         player.traits.agility = 0;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate012b,
     next: ["str_agl_03", "int_ins_01"]
   },
   "str_agl_03": {
@@ -168,7 +162,8 @@ toy.charCreate.questions = {
         player.traits.strength = 1;
         player.traits.agility = 2;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: ["int_ins_01", "int_ins_01"]
   },
 
@@ -192,7 +187,8 @@ toy.charCreate.questions = {
         player.traits.intellect = 2;
         player.traits.instinct = 1;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: ["int_ins_02a", "int_ins_02b"]
   },
   "int_ins_02a": {
@@ -215,7 +211,8 @@ toy.charCreate.questions = {
         player.traits.intellect = 0;
         player.traits.instinct = 3;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: ["int_ins_03", "dev_met_01"]
   },
   "int_ins_02b": {
@@ -237,7 +234,8 @@ toy.charCreate.questions = {
         player.traits.intellect = -1;
         player.traits.instinct = -1;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: ["dev_met_01", "int_ins_03"]
   },
   "int_ins_03": {
@@ -261,7 +259,8 @@ toy.charCreate.questions = {
         player.traits.intellect = 2;
         player.traits.instinct = 1;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: ["dev_met_01", "dev_met_01"]
   },
   
@@ -285,7 +284,8 @@ toy.charCreate.questions = {
         player.traits.devotion = 1;
         player.traits.mettle = 2;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: ["dev_met_02a", "dev_met_02b"]
   },
   "dev_met_02a": {
@@ -306,7 +306,8 @@ toy.charCreate.questions = {
         player.traits.devotion = 3;
         player.traits.mettle = 0;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: ["dev_met_03", null]
   },
   "dev_met_02b": {
@@ -328,7 +329,8 @@ toy.charCreate.questions = {
         player.traits.devotion = -1;
         player.traits.mettle = -1;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: [null, "dev_met_03"]
   },
   "dev_met_03": {
@@ -348,7 +350,8 @@ toy.charCreate.questions = {
         player.traits.devotion = 1;
         player.traits.mettle = 2;
       }
-      ],
+    ],
+    scene: toy.scenes.sceneList.charCreate01a,
     next: [null, null]
   },
 };
