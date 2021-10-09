@@ -2262,10 +2262,10 @@ jb.drawGradientRect = function(ctxt, x, y, w, h, isVertical, colorStops) {
 
   var grad = null;
   if (isVertical) {
-    grad = ctxt.createLinearGradient(0, 0, 0, h);
+    grad = ctxt.createLinearGradient(x, y, x + 0, y + h);
   }
   else {
-    grad = ctxt.createLinearGradient(0, 0, w, 0);
+    grad = ctxt.createLinearGradient(x, y, x + w, y + 0);
   }
 
   if (colorStops && colorStops instanceof Array) {
@@ -2465,7 +2465,7 @@ jb.setOpenTypeFont = function(openTypeFont, size, widthFudge) {
   jb.openTypeFontSize = size || jb.fontSize;
   jb.openTypeFontWidthFudge = widthFudge || 1.0;
 };
-jb.drawOpenTypeFontAt = function(ctxt, text, x, y, strokeColor, fillColor, hAlign, vAlign) {
+jb.drawOpenTypeFontAt = function(ctxt, text, x, y, strokeColor, fillColor, hAlign, vAlign, wrap) {
   var path = null,
       xFinal = 0,
       yFinal = 0;
@@ -2473,19 +2473,78 @@ jb.drawOpenTypeFontAt = function(ctxt, text, x, y, strokeColor, fillColor, hAlig
   vAlign = (typeof vAlign === 'undefined') ? jb.OPEN_TYPE_FONT_DEFAULT_VALIGN : vAlign;
   hAlign = (typeof hAlign === 'undefined') ? jb.OPEN_TYPE_FONT_DEFAULT_HALIGN : hAlign;
 
-  if (jb.openTypeFont && jb.openTypeFont && text) {
-    jb.measureOpenTypeText(text);
+  var lines = [];
+  if (wrap) {
+    lines = jb.wordWrap(x, text);
+  }
+  else if (text) {
+    lines.push(text);
+  }
 
-    xFinal = x - hAlign * jb.openTypeFontMetrics.width;
-    yFinal = y + (1 - vAlign) * jb.openTypeFontMetrics.fontBoundingBoxAscent;
-    path = jb.openTypeFont.getPath(text, xFinal, yFinal, jb.openTypeFontSize);
-
+  if (jb.openTypeFont && jb.openTypeFont && lines.length) {
     ctxt.save();
-    path.fill = fillColor;
-    path.stroke = strokeColor;
-    path.draw(ctxt);
+
+    lines.forEach(function(line) {
+      var yOffset = 0;
+      jb.measureOpenTypeText(line);
+      xFinal = x - hAlign * jb.openTypeFontMetrics.width;
+      yFinal = y + (1 - vAlign) * jb.openTypeFontMetrics.fontBoundingBoxAscent + yOffset;
+      path = jb.openTypeFont.getPath(line, xFinal, yFinal, jb.openTypeFontSize);
+      yOffset += jb.openTypeFontMetrics.height;
+  
+      path.fill = fillColor;
+      path.stroke = strokeColor;
+      path.draw(ctxt);
+    });
+
     ctxt.restore();
   }
+};
+
+jb.wordWrap = function(left, text) {
+  var lines = [];
+
+  if (text) {
+    words = text.split(' ');
+    var line = "";
+
+    var curLeft = left;
+    while (words.length > 0) {
+      word = words.shift();
+      var isFirstWord = curLeft === left;
+      if (!isFirstWord) {
+        word = " " + word;
+      }
+
+      jb.measureOpenTypeText(word);
+
+      var didWrap = false;
+      if (curLeft + jb.openTypeFontMetrics.width > jb.canvas.width) {
+        // Wrap.
+        if (line !== "") {
+          lines.push(line);
+          line = "";
+          didWrap = true;
+        }
+
+        curLeft = left;
+
+        if (!isFirstWord) {
+          word = word.substr(1);
+          jb.measureOpenTypeText(word);
+        }
+      }
+
+      line += word;
+      curLeft += jb.openTypeFontMetrics.width;
+
+      if (words.length === 0 && !didWrap) {
+        lines.push(line);
+      }
+    }
+  }
+
+  return lines;
 };
 
 jb.openTypeFontMetrics = {

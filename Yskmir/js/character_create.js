@@ -11,7 +11,7 @@
  toy.charCreate = {
   step: null,
   storyChoice: 0,
-  TEXT_TOP: 212,
+  TEXT_TOP: 250,
 
   reset: function() {
     this.step = null;
@@ -75,11 +75,7 @@ jb.program.do_waitForSkillSelect = function() {
 toy.charCreate.questions = {
   // Strength vs Agility
   "str_agl_01": {
-    text: [
-      "You are a guard at a border outpost.",
-      "Orcs attack in the dead of night.",
-      "Do you:",
-      ],
+    text: "You are a guard at a border outpost. Orcs attack in the dead of night. Do you:",
     choices: [
       "Grab a bow and snipe from the walls",
       "Grab an axe and defend the gate"
@@ -98,12 +94,7 @@ toy.charCreate.questions = {
     next: ["str_agl_02a", "str_agl_02b"]
   },
   "str_agl_02a": {
-    text: [
-      "While exploring a cave, you are",
-      "trapped by a mudslide. Overhead,",
-      "daylight shines through a narrow crevice.",
-      "Do you:"
-      ],
+    text: "While exploring a cave, you are trapped by a mudslide. Overhead, daylight shines through a narrow crevice. Do you:",
     choices: [
       "Wriggle up and out through the crack",
       "Heave mud and stone to clear the entry"
@@ -122,10 +113,7 @@ toy.charCreate.questions = {
     next: ["int_ins_01", "str_agl_03"]
   },
   "str_agl_02b": {
-    text: [
-      "You are invited to a tournament.",
-      "In which event do you compete?",
-      ],
+    text: "You are invited to a tournament. In which event do you compete?",
     choices: [
       "Archery competition",
       "Wrestling contest",
@@ -144,11 +132,7 @@ toy.charCreate.questions = {
     next: ["str_agl_03", "int_ins_01"]
   },
   "str_agl_03": {
-    text: [
-      "While searching an ancient tomb,",
-      "you uncover a treasure chest.",
-      "Do you:"
-      ],
+    text: "While searching an ancient tomb, you uncover a treasure chest. Do you:",
     choices: [
       "1) Smash it open",
       "2) Try to pick the lock",
@@ -163,17 +147,13 @@ toy.charCreate.questions = {
         player.traits.agility = 2;
       }
     ],
-    scene: toy.scenes.sceneList.charCreate01a,
+    scene: toy.scenes.sceneList.charCreate013,
     next: ["int_ins_01", "int_ins_01"]
   },
 
   // Intellect vs Instinct
   "int_ins_01": {
-    text: [
-      "You are deep in a subterranean cave",
-      "when your last torch burns out.",
-      "Do you:"
-      ],
+    text: "You are deep in a subterranean cave when your last torch burns out. Do you:",
     choices: [
       "Use air currents to find your way out",
       "Retrace your steps based on memory",
@@ -192,12 +172,7 @@ toy.charCreate.questions = {
     next: ["int_ins_02a", "int_ins_02b"]
   },
   "int_ins_02a": {
-    text: [
-      "You have found a mysteriouds altar",
-      "on which rests a solid gold idol. You",
-      "are certain the statue is booby trapped.",
-      "Do you:"
-      ],
+    text: "You have found a mysteriouds altar on which rests a solid gold idol. You are certain the statue is booby trapped. Do you:",
     choices: [
       "Try to locate and disarm the mechanism",
       "Snatch the idol and dodge the trap",
@@ -216,11 +191,7 @@ toy.charCreate.questions = {
     next: ["int_ins_03", "dev_met_01"]
   },
   "int_ins_02b": {
-    text: [
-      "While hunting in an Elder Wood, you",
-      "encounter a boulder inscribed with runes.",
-      "Do you:"
-      ],
+    text: "While hunting in an Elder Wood, you encounter a boulder inscribed with runes. Do you:",
     choices: [
       "Spend several hours decyphering them",
       "Stay alert and proceed with caution",
@@ -239,13 +210,7 @@ toy.charCreate.questions = {
     next: ["dev_met_01", "int_ins_03"]
   },
   "int_ins_03": {
-    text: [
-      "You are gambling at an inn with 2 men,",
-      "both strangers. The first man accuses",
-      "the second of using loaded dice. The second",
-      "man denies it. They turn to you to settle",
-      "the matter. Do you:"
-      ],
+    text: "You are gambling at an inn with 2 men, both strangers. The first man accuses the second of using loaded dice. The second man denies it. They turn to you to settle the matter. Do you:",
     choices: [
       "Search the others' eyes to see who is lying",
       "Compute the odds that the dice are rigged",
@@ -266,11 +231,7 @@ toy.charCreate.questions = {
   
   // Devotion vs Mettle
   "dev_met_01": {
-    text: [
-      "You and a friend are exploring ruins.",
-      "A decrepit stone pillar tumbles toward",
-      "the two of you. Do you:",
-      ],
+    text: "You and a friend are exploring ruins. A decrepit stone pillar tumbles toward the two of you. Do you:",
     choices: [
       "Pray for strength and try to hold the wall up",
       "Push your friend clear and hope you survive"
@@ -289,10 +250,7 @@ toy.charCreate.questions = {
     next: ["dev_met_02a", "dev_met_02b"]
   },
   "dev_met_02a": {
-    text: [
-      "You are wandering lost in the wilderness",
-      "and have not eaten in days. Do you:",
-      ],
+    text: "You are wandering lost in the wilderness and have not eaten in days. Do you:",
     choices: [
       "Use your last strength to hunt and gather",
       "Keep walking, sure you will find food soon"
@@ -311,11 +269,7 @@ toy.charCreate.questions = {
     next: ["dev_met_03", null]
   },
   "dev_met_02b": {
-    text: [
-      "You visit an old friend, only to find",
-      "she has been ravaged by disease. Though",
-      "she has recovered, she is weak. Do you:",
-      ],
+    text: "You visit an old friend, only to find she has been ravaged by disease. Though she has recovered, she is weak. Do you:",
     choices: [
       "Offer to rehabilitate her to full strength",
       "Offer to take her to the Temple healers"
@@ -334,9 +288,7 @@ toy.charCreate.questions = {
     next: [null, "dev_met_03"]
   },
   "dev_met_03": {
-    text: [
-      "What is the better use for fine wine?",
-      ],
+    text: "What is the better use for fine wine?",
     choices: [
       "Holy sacrament",
       "Drinking contest"

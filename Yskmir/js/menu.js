@@ -65,9 +65,12 @@ toy.menu = {
         var x = this.left;
 
         if (this.preamble && this.preamble.length > 0) {
-            for (var i=0; i<this.preamble.length; ++i) {
-                jb.drawOpenTypeFontAt(jb.ctxt, this.preamble[i], x, y, this.unselectColor, this.unselectColor, this.hAlign, this.vAlign);
-                y += this.fontSize;
+            var lines = jb.wordWrap(x, this.preamble);
+            if (lines) {
+                lines.forEach(function(line) {
+                    jb.drawOpenTypeFontAt(jb.ctxt, line, x, y, this.unselectColor, this.unselectColor, this.hAlign, this.vAlign);
+                    y += this.fontSize;
+                }.bind(this));
             }
 
             y += this.fontSize;
