@@ -15,966 +15,6 @@ jb = {
     }
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// oooooo   oooooo     oooo            .o8       oooooo     oooo            o8o
-//  `888.    `888.     .8'            "888        `888.     .8'             `"'
-//   `888.   .8888.   .8'    .ooooo.   888oooo.    `888.   .8'    .ooooo.  oooo   .ooooo.   .ooooo.
-//    `888  .8'`888. .8'    d88' `88b  d88' `88b    `888. .8'    d88' `88b `888  d88' `"Y8 d88' `88b
-//     `888.8'  `888.8'     888ooo888  888   888     `888.8'     888   888  888  888       888ooo888
-//      `888'    `888'      888    .o  888   888      `888'      888   888  888  888   .o8 888    .o
-//       `8'      `8'       `Y8bod8P'  `Y8bod8P'       `8'       `Y8bod8P' o888o `Y8bod8P' `Y8bod8P'
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-webVoice = {};
-
-webVoice.get = function() {
-  // alert("Your web browser does not support voice recognition. Please upgrade to Google Chrome 25 or higher.");
-  return false;
-};
-
-webVoice.init = function(fnOnStart, fnOnEnd, fnOnResult, fnOnError, bContinuous, bInterim) {
-  var recog = webVoice.get();
-
-  if (recog) {
-    recog.onstart = fnOnStart;
-    recog.onend = fnOnEnd;
-    recog.onresult = fnOnResult;
-    recog.onerror = fnOnError;
-    recog.continuous = bContinuous ? true : false;
-    recog.interimResults = bInterim ? true : false;
-  }
-};
-
-(function() {
-  var recognition = null;
-
-  if (('webkitSpeechRecognition' in window)) {
-    recognition = new webkitSpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.onstart = null;
-    recognition.onresult = null;
-    recognition.onerror = null;
-    recognition.onend = null;
-
-    webVoice.get = function() {
-      return recognition;
-    }
-  }
-})();
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ooooooooo.   oooooooooooo  .oooooo.o   .oooooo.   ooooo     ooo ooooooooo.     .oooooo.   oooooooooooo  .oooooo.o
-// `888   `Y88. `888'     `8 d8P'    `Y8  d8P'  `Y8b  `888'     `8' `888   `Y88.  d8P'  `Y8b  `888'     `8 d8P'    `Y8
-//  888   .d88'  888         Y88bo.      888      888  888       8   888   .d88' 888           888         Y88bo.
-//  888ooo88P'   888oooo8     `"Y8888o.  888      888  888       8   888ooo88P'  888           888oooo8     `"Y8888o.
-//  888`88b.     888    "         `"Y88b 888      888  888       8   888`88b.    888           888    "         `"Y88b
-//  888  `88b.   888       o oo     .d8P `88b    d88'  `88.    .8'   888  `88b.  `88b    ooo   888       o oo     .d8P
-// o888o  o888o o888ooooood8 8""88888P'   `Y8bood8P'     `YbodP'    o888o  o888o  `Y8bood8P'  o888ooooood8 8""88888P'
-// Resources /////////////////////////////////////////////////////////////////////////////////////////////////////////
-resources = {
-  resourcesPending: 0,
-  resourcesLoaded: 0,
-  resourcesRequested: 0,
-  bResourceLoadSuccessful: true,
-
-  incPendingCount: function() {
-    resources.resourcesPending += 1;
-    resources.resourcesRequested += 1;
-  },
-
-  incLoadedCount: function(bLoadSuccessful) {
-    resources.resourcesLoaded += 1;
-    resources.resourcesPending -= 1;
-
-    resources.bResourceLoadSuccessful &= bLoadSuccessful;
-  },
-
-  getLoadProgress: function() {
-    var completion = resources.resourcesRequested > 0 ? resources.resourcesLoaded / resources.resourcesRequested : 1.0;
-
-    if (!resources.bResourceLoadSuccessful) {
-      completion *= -1.0;
-    }
-
-    return completion;
-  },
-
-  getLoadedCount: function() {
-    return resources.resourcesLoaded;
-  },
-
-  loadComplete: function() {
-    return resources.resourcesPending === 0 && resources.resourcesLoaded === resources.resourcesRequested;
-  },
-
-  loadSuccessful: function() {
-    return resources.bResourceLoadSuccessful;
-  },
-
-  loadFont: function(fontName, fontPath, fontType) {
-    var fontInfo = {openTypeFont: null, loadErr: null},
-        fullURL = (fontPath || "./res/fonts") + "/" + fontName + "." + (fontType || "ttf");
-
-    fullURL = fullURL.replace("//", "/");
-
-    resources.incPendingCount();
-
-    opentype.load(fullURL, function(err, font) {
-      if (err) {
-        fontInfo.loadErr = err;
-        resources.incLoadedCount(false);
-      }
-      else {
-        fontInfo.openTypeFont = font;
-        resources.incLoadedCount(true);
-      }
-    });
-
-    return fontInfo;
-  },
-
-  loadImage: function(imageURL, imagePath) {
-    var image = new Image(),
-        fullURL = (imagePath || "./res/images/") + imageURL;
-
-    resources.incPendingCount();
-  
-    image.onload = function() {
-      resources.incLoadedCount(true);
-    }
-    
-    image.onerror = function() {
-      resources.incLoadedCount(false);
-    }
-  
-    image.src = fullURL;
-  
-    return image;
-  },
-  
-  loadSound: function(soundURL, resourcePath, nChannels, repeatDelaySec) {
-    var path = resourcePath || "./res/sounds/";
-
-    soundURL = path + soundURL;
-
-    resources.incPendingCount();
-
-    return jb.sound.load(soundURL,
-        function() {
-          resources.incLoadedCount(true);
-        },
-        function() {
-          resources.incLoadedCount(false);
-        },
-        nChannels, repeatDelaySec);
-  },
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// oooooooooo.  ooooo        ooooo     ooo oooooooooooo ooooooooo.   ooooooooo.   ooooo ooooo      ooo ooooooooooooo  .oooooo.o
-// `888'   `Y8b `888'        `888'     `8' `888'     `8 `888   `Y88. `888   `Y88. `888' `888b.     `8' 8'   888   `8 d8P'    `Y8
-//  888     888  888          888       8   888          888   .d88'  888   .d88'  888   8 `88b.    8       888      Y88bo.
-//  888oooo888'  888          888       8   888oooo8     888ooo88P'   888ooo88P'   888   8   `88b.  8       888       `"Y8888o.
-//  888    `88b  888          888       8   888    "     888          888`88b.     888   8     `88b.8       888           `"Y88b
-//  888    .88P  888       o  `88.    .8'   888       o  888          888  `88b.   888   8       `888       888      oo     .d8P
-// o888bood8P'  o888ooooood8    `YbodP'    o888ooooood8 o888o        o888o  o888o o888o o8o        `8      o888o     8""88888P'
-// Blueprints //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Usage:
-//
-// Define a new blueprint:
-// blueprints.draft(
-//   "testKnight",
-//
-//   // Data
-//   {
-//     ...
-//   },
-//
-//   // Actions
-//   {
-//     ...
-//   },
-// );
-//
-// Extend an existing blueprint with components:
-// blueprints.make("testKnight", "touchable")
-//
-// Instantiate an object from a blueprint:
-// blueprints.build("testKnight");
-//
-blueprints = {
-    mixins: {},
-
-    make: function(blueprint, extension) {
-        var key = null,
-            bpData = blueprints[blueprint],
-            mixin = blueprints.mixins[extension],
-            proto = bpData ? bpData.proto : null;
-
-        if (bpData && mixin && proto) {
-            for (key in mixin) {
-                if (key.indexOf(extension) >= 0) {
-                    proto[key] = mixin[key];
-                }
-            }
-
-            proto._components.push(extension);
-        }
-    },
-
-    draft: function(name, dataObj, classObj) {
-        var args = Array.prototype.slice.call(arguments),
-            propObj = {},
-            key = null;
-
-        if (!blueprints[name]) {
-            classObj._components = [];
-            classObj.destroy = function() {
-                var i = 0;
-
-                for (i=0; i<this._components.length; ++i) {
-                    blueprints.mixins[this._components[i]].destroy(this);
-                }
-            }
-
-            for (key in dataObj) {
-                propObj[key] = {value: dataObj[key], writable: true, enumerable: true, configurable: true};
-            }
-
-            blueprints[name] = {data: propObj, proto: classObj};
-        }
-    },
-
-    build: function(name) {
-        var instance = null,
-            template = blueprints[name],
-            i = 0,
-            mixin = null,
-            args = [];
-
-        if (template) {
-            // Build argument list.
-            for (i=1; i<arguments.length; ++i) {
-              args.push(arguments[i]);
-            }
-
-            instance = Object.create(template.proto, JSON.parse(JSON.stringify(template.data)));
-
-            for (i=0; i<template.proto._components.length; ++i) {
-                mixin = blueprints.mixins[template.proto._components[i]];
-                if (mixin) {
-                    mixin.spawn(instance);
-                }
-            }
-
-            if (instance.onCreate) {
-                instance.onCreate.apply(instance, args);
-            }
-        }
-
-        return instance;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//   .oooooo.     .oooooo.   ooo        ooooo ooooooooo.     .oooooo.   ooooo      ooo oooooooooooo ooooo      ooo ooooooooooooo  .oooooo.o
-//  d8P'  `Y8b   d8P'  `Y8b  `88.       .888' `888   `Y88.  d8P'  `Y8b  `888b.     `8' `888'     `8 `888b.     `8' 8'   888   `8 d8P'    `Y8
-// 888          888      888  888b     d'888   888   .d88' 888      888  8 `88b.    8   888          8 `88b.    8       888      Y88bo.
-// 888          888      888  8 Y88. .P  888   888ooo88P'  888      888  8   `88b.  8   888oooo8     8   `88b.  8       888       `"Y8888o.
-// 888          888      888  8  `888'   888   888         888      888  8     `88b.8   888    "     8     `88b.8       888           `"Y88b
-// `88b    ooo  `88b    d88'  8    Y     888   888         `88b    d88'  8       `888   888       o  8       `888       888      oo     .d8P
-//  `Y8bood8P'   `Y8bood8P'  o8o        o888o o888o         `Y8bood8P'  o8o        `8  o888ooooood8 o8o        `8      o888o     8""88888P'
-// Components //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// All components must define 'spawn', and 'destroy' functions in order
-// to be correctly added/removed by the 'blueprint' object.
-
-///////////////////////////////////////////////////////////////////////////////
-// State Machines
-///////////////////////////////////////////////////////////////////////////////
-jb.stateMachines = {
-  machines: [],
-  updating: [],
-  toAdd: [],
-  toRemove: [],
-
-  addMachine: function(machine) {
-    if (this.machines.indexOf(machine) < 0) {
-      this.machines.push(machine);
-    }
-  },
-
-  removeMachine: function(machine) {
-    jb.removeFromArray(this.machines, machine);
-    jb.removeFromArray(this.updating, machine, true);
-  },
-
-  transitionTo: function(that, state) {
-    var bWantsUpdate = false,
-        bTransitioned = false;
-
-    that.smNextState = null;
-
-    if (state && state !== that.smCurrentState) {
-      // Exit current state.
-      if (that.smCurrentState && that.smCurrentState.exit) {
-        that.smCurrentState.exit.call(that);
-      }
-
-      that.smCurrentState = state;
-
-      if (that.smCurrentState) {
-        if (that.smCurrentState.enter) {
-          that.smCurrentState.enter.call(that);
-        }
-
-        bWantsUpdate = true;
-      }
-
-      bTransitioned = true;
-    }
-    else if (state === null) {
-      that.smCurrentState = null;
-    }
-
-    return bTransitioned;
-  },
-
-  update: function() {
-    var i = 0,
-        that = null;
-
-    if (this.toAdd.length) {
-      for (i=0; i<this.toAdd.length; ++i) {
-        that = this.toAdd[i];
-        jb.assert(that.smNextState, "Starting state machine has to starting state!");
-        jb.assert(!that.smCurrentState, "Starting state machine has existing state!");
-
-        that.smCurrentState = that.smNextState;
-
-        if (that.smNextState.enter) {
-          that.smNextState.enter.call(that);
-        }
-
-        this.updating.push(this.toAdd[i]);
-      }
-      this.toAdd.length = 0;
-    }
-
-    for (i=0; i<this.updating.length; ++i) {
-      that = this.updating[i];
-
-      if (that.smNextState && that.smNextState !== that.smCurrentState) {
-        if (that.smCurrentState.exit) {
-          that.smCurrentState.exit.call(that);
-        }
-
-        that.smCurrentState = that.smNextState;
-        that.smNextState = null;
-      }
-
-      if (that.smCurrentState) {
-        that.smAllowStateChange = true;
-
-        if (that.smCurrentState.update) {
-          that.smCurrentState.update.call(that, jb.time.deltaTime);
-
-          if (that.smNextState && that.smNextState !== that.smCurrentState) {
-            if (that.smCurrentState.exit) {
-              that.smCurrentState.exit.call(that);
-            }
-
-            if (that.smNextState.enter) {
-              that.smNextState.enter.call(that);
-            }
-
-            that.smCurrentState = that.smNextState;
-            that.smNextState = null;
-          }
-        }
-        else {
-          // No update state, so force a stop.
-          that.stateMachineStop();
-        }
-
-        that.smAllowStateChange = false;
-      }
-    }
-
-    if (this.toRemove.length) {
-      for (i=0; i<this.toRemove.length; ++i) {
-        that = this.toRemove[i];
-        jb.assert(that.smCurrentState, "Stopping state machine has no state!");
-
-        if (that.smCurrentState.exit) {
-          that.smCurrentState.exit.call(that);
-        }
-
-        that.smCurrentState = null;
-
-        jb.removeFromArray(jb.stateMachines.updating, that, true);
-      }
-      this.toRemove.length = 0;
-    }
-  },
-
-  // Blueprint Interface //////////////////////////////////////////////////////
-  spawn: function(instance) {
-    if (!instance.smCurrentState) {
-      instance.smCurrentState = null;
-    }
-
-    if (!instance.smNextState) {
-      instance.smNextState = null;
-    }
-
-    if (!instance.smAllowStateChange) {
-      instance.smAllowStateChange = false;
-    }
-
-    this.addMachine(instance);
-  },
-
-  destroy: function(instance) {
-    this.removeMachine(instance);
-  },
-
-  // Mixins ///////////////////////////////////////////////////////////////////
-  stateMachineStart: function(state) {
-    jb.assert(!this.smCurrentState, "State machine already started!");
-    jb.assert(jb.stateMachines.updating.indexOf(this) < 0, "State machine already in update list!");
-
-    this.smAllowStateChange = true;
-    this.stateMachineSetNextState(state);
-    this.smAllowStateChange = false;
-
-    if (jb.stateMachines.toAdd.indexOf(this) < 0) {
-      jb.stateMachines.toAdd.push(this);
-    }
-  },
-
-  stateMachineSetNextState: function(nextState) {
-    jb.assert(this.smAllowStateChange, "Illegal state change in state machine!");
-
-    if (this.smCurrentState != nextState) {
-      this.smNextState = nextState;
-    }
-  },
-
-  stateMachineIsInState: function(testState) {
-    return testState === this.smCurrentState;
-  },
-
-  stateMachineStop: function() {
-    jb.assert(this.smCurrentState, "State machine already stopped");
-    jb.assert(jb.stateMachines.updating.indexOf(this) >= 0, "State machine not in update list!");
-
-    if (jb.stateMachines.toRemove.indexOf(this) < 0) {
-      jb.stateMachines.toRemove.push(this);
-    }
-  }
-};
-
-blueprints.mixins["stateMachine"] = jb.stateMachines;
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Transitions ----------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-jb.transitions = {
-  // Blueprint Interface //////////////////////////////////////////////////////
-  transitioners: [],
-
-  spawn: function(instance) {
-    jb.transitions.makeInstance(instance);
-    this.transitioners.push(instance);
-  },
-
-  destroy: function(instance) {
-    jb.removeFromArray(this.transitioners, instance);
-  },
-
-  // 'Transitions' Interface //////////////////////////////////////////////////
-  makeInstance: function(instance) {
-    if (typeof instance.transitions === "undefined") {
-      instance.transitions = [];
-    }
-
-    if (typeof instance.transitionStates === "undefined") {
-      instance.transitionStates = {};
-    }
-  },
-
-  transitionState: function(tStart, tEnd, tNow, duration, fnUpdate, fnFinalize) {
-    this.reset = function(tStart, tEnd, tNow, duration, fnUpdate, fnFinalize) {
-      this.tStart = tStart;
-      this.tEnd = tEnd;
-      this.tNow = tNow;
-      this.duration = Math.max(duration, 1);
-      this.update = fnUpdate;
-      this.finalize = fnFinalize;
-      this.bActive = false;
-    }
-  },
-
-  update: function() {
-    var iTransitioner = 0,
-        param = 0,
-        transitioner = null;
-
-    for (iTransitioner=0; iTransitioner<this.transitioners.length; ++iTransitioner) {
-      transitioner = this.transitioners[iTransitioner];
-      if (transitioner !== null) {
-        transitioner.transitionerUpdate.apply(transitioner);
-      }
-    }
-  },
-
-  isTransitioning: function() {
-    var i = 0,
-        bTransitioning = false;
-
-    for (i=0; i<this.transitioners.length; ++i) {
-      if (this.transitioners[i] && this.transitioners[i].transitionerCountActiveTransitions() > 0) {
-        bTransitioning = true;
-        break;
-      }
-    }
-
-    return bTransitioning;
-  },
-
-  // Mixins -------------------------------------------------------------------
-  // All mixins must start with the prefix 'transitions' in order to be added
-  // to the instance's prototype.
-
-  bDoUpdate: true,  // DEBUG: set to 'false' to disable update look. Useful for debugging infinite loops.
-
-  transitionerUpdate: function() {
-    var param = 0,
-        dt = jb.time.deltaTimeMS,
-        timeUsed = 0,
-        curState = this.transitions[0];
-
-    while (jb.transitions.bDoUpdate && dt > 0 && this.transitions.length > 0 && curState) {
-      curState.bActive = true;
-      timeUsed = Math.min(dt, curState.tEnd - curState.tNow);
-      dt -= timeUsed;
-      curState.tNow += timeUsed;
-      param = Math.min(1.0, (curState.tNow - curState.tStart) / curState.duration);
-
-      curState.update(param);
-
-      if (Math.abs(param - 1.0) < jb.EPSILON) {
-        this.transitionerFinalizeCurrent();
-      }
-
-      curState = this.transitions[0];
-    }
-  },
-
-  transitionerCountActiveTransitions: function() {
-    return this.transitions.length;
-  },
-
-  transitionerParamToEaseInOut: function(param) {
-    var easedParam = (1.0 + Math.sin(-Math.PI * 0.5 + Math.PI * param)) * 0.5;
-    return easedParam * easedParam;
-  },
-
-  transitionerAdd: function(name, duration, fnUpdate, fnFinalize, bReset) {
-    var newTransition = null,
-        tStart = 0,
-        curParam = 0;
-
-    duration *= 1000;
-
-    // See if this transition state already exists for us.
-    newTransition = this.transitionStates[name];
-
-    if (!newTransition) {
-      // No previous
-      newTransition = new jb.transitions.transitionState()
-      bReset = true;
-    }
-
-    if (!newTransition.bActive || bReset) {
-      // Old transition finished or we're resetting it.
-      newTransition.reset(jb.time.now, jb.time.now + duration, jb.time.now, duration, fnUpdate.bind(this), fnFinalize.bind(this));
-    }
-    else {
-      // Old transition exists and is still active.
-      // Figure out where we should start the new transition. If we're
-      // already tracking a transitionState of this type, we should
-      // start where the last one left off.
-      curParam = (newTransition.tNow - newTransition.tStart) / newTransition.duration;
-      newTransition.tEnd = newTransition.tNow + (1 - curParam) * duration;
-      newTransition.reset(newTransition.tNow - curParam * duration, newTransition.tEnd, newTransition.tNow, duration, update.bind(this), finalize.bind(this));
-    }
-
-    this.transitions.push(newTransition);
-    this.transitionStates[name] = newTransition;
-  },
-
-  transitionerFinalizeCurrent: function() {
-    if (this.transitions[0]) {
-      this.transitions[0].finalize();
-      this.transitions[0].bActive = false;
-      this.transitionStates[this.transitions[0].name] = null;
-      this.transitions.shift();
-    }
-  },
-
-  transitionerFinalizeAll: function() {
-    var i = 0;
-
-    while (this.transitions.length) {
-      this.transitionerFinalizeCurrent();
-    }
-  }
-};
-
-blueprints.mixins["transitioner"] = jb.transitions;
-
-///////////////////////////////////////////////////////////////////////////////
-// Touchables -----------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-jb.touchables = {
-    // Blueprint Interface ////////////////////////////////////////////////////
-    spawn: function(instance) {
-        var i = 0,
-            bInserted = false;
-
-        jb.touchables.makeInstance(instance);
-        jb.touchables.instances.unshift(instance);
-    },
-
-    destroy: function(instance) {
-        var index = jb.touchables.instances.indexOf(instance);
-
-        // Remove the instance from the instances array.
-        // TODO: replace 'splice' with an optimizable function.
-        if (index >= 0) {
-            jb.touchables.instances.splice(index, 1);
-        }
-    },
-
-    // 'Touchables' Implementation ////////////////////////////////////////////
-    instances: [],
-
-    makeInstance: function(instance) {
-        if (!instance.bounds) {
-            instance.bounds = new jb.bounds(0, 0, 0, 0);
-        }
-
-        if (!instance.touchLayer) {
-            instance.touchLayer = 0;
-        }
-
-        if (!instance.onTouched) {
-          instance.onTouched = null;
-        }
-
-        if (!instance.onUntouched) {
-          instance.onUntouched = null;
-        }
-
-        instance.bTouchableEnabled = true;
-    },
-
-    getTouched: function(screenX, screenY) {
-        var i,
-            touched = null,
-            x = jb.screenToWorldX(screenX),
-            y = jb.screenToWorldY(screenY);
-
-        for (i=jb.touchables.instances.length - 1; i>=0; --i) {
-            if (jb.touchables.instances[i].bTouchableEnabled && jb.touchables.instances[i].bounds.contain(x, y)) {
-                touched = jb.touchables.instances[i];
-                if (touched.onTouched) {
-                  touched.onTouched.call(touched, screenX, screenY);
-                }
-                break;
-            }
-        }
-
-        return touched;
-    },
-
-    // Mixins ---------------------------------------------
-    // All "mixin" functions must start with the prefix
-    // "touchable" in order to flag their inclusion into
-    // the specified prototypes.
-    // e.g.:
-    //     touchableGetLayer: function() { .. },
-    touchableSetLayer: function(newLayer) {
-      if (jb.touchables.instances.indexOf(this) >= 0) {
-        jb.removeFromArray(jb.touchables.instances, this, true);
-      }
-
-      this.touchLayer = Math.max(0, newLayer);
-
-      for (i=0; i<jb.touchables.instances.length; ++i) {
-          if (instance.touchLayer <= jb.touchables.instances[i].touchLayer) {
-              // Insert the instance at this point.
-              // TODO: replace 'splice' with an optimizable function.
-              jb.touchables.splice(i, 0, instance);
-              bInserted = true;
-              break;
-          }
-      }
-
-      if (!bInserted) {
-          jb.touchables.instances.push(instance);
-      }
-    },
-
-    touchableEnable: function() {
-      this.bTouchableEnabled = true;
-    },
-
-    touchableDisable: function() {
-      this.bTouchabelDisabled = false;
-    }
-};
-
-blueprints.mixins["touchable"] = jb.touchables;
-
-///////////////////////////////////////////////////////////////////////////////
-// Swipeables -----------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-jb.swipeables = {
-    // Blueprint Interface ////////////////////////////////////////////////////
-    spawn: function(instance) {
-        var i = 0,
-            bInserted = false;
-
-        jb.swipeables.makeInstance(instance);
-
-        if (!bInserted) {
-            jb.swipeables.instances.push(instance);
-        }
-    },
-
-    destroy: function(instance) {
-        var index = jb.swipeables.instances.indexOf(instance);
-
-        // Remove the instance from the instances array.
-        // TODO: replace 'splice' with an optimizable function.
-        if (index >= 0) {
-            jb.swipeables.instances.splice(index, 1);
-        }
-    },
-
-    // 'Swipeables' Implementation ////////////////////////////////////////////
-    instances: [],
-
-    makeInstance: function(instance) {
-        if (!instance.bounds) {
-            instance.bounds = new jb.bounds(0, 0, 0, 0);
-        }
-
-        instance.touchLayer = 0;
-        instance.bSwipeableEnabled = true;
-
-        if (!instance.onTouched) {
-          instance.onTouched = null;
-        }
-
-        if (!instance.onUntouched) {
-          instance.onUntouched = null;
-        }
-    },
-
-    getSwiped: function() {
-        var i,
-            swiped = null,
-            sx = jb.screenToWorldX(jb.swipe.lastX),
-            sy = jb.screenToWorldY(jb.swipe.lastY),
-            ex = jb.screenToWorldX(jb.swipe.endX),
-            ey = jb.screenToWorldY(jb.swipe.endY);
-
-        jb.swipe.allSwiped.length = 0;
-
-        for (i=jb.swipeables.instances.length - 1; i>=0; --i) {
-            if (jb.swipeables.instances[i].bSwipeableEnabled && (jb.swipeables.instances[i].bounds.intersectLine(sx, sy, ex, ey))) {
-              swiped = jb.swipeables.instances[i];
-
-              jb.swipe.allSwiped.push(swiped);
-
-              if (jb.swipe.swiped.indexOf(swiped) < 0) {
-                jb.swipe.swiped.push(swiped);
-
-                if (swiped.onSwiped) {
-                  swiped.onSwiped.call(swiped);
-                }
-              }
-            }
-        }
-    },
-
-    // Mixins ---------------------------------------------
-    // All "mixin" functions must start with the prefix
-    // "swipeable" in order to flag their inclusion into
-    // the specified prototypes.
-    // e.g.:
-    //     swipeableGetLayer: function() { .. },
-    swipeableSetLayer: function(newLayer) {
-      if (jb.swipeables.instances.indexOf(this) >= 0) {
-        jb.removeFromArray(jb.swipeables.instances, this, true);
-      }
-
-      this.swipeLayer = Math.max(0, newLayer);
-
-      for (i=0; i<jb.swipeables.instances.length; ++i) {
-          if (instance.swipeLayer <= jb.swipeables.instances[i].swipeLayer) {
-              // Insert the instance at this point.
-              // TODO: replace 'splice' with an optimizable function.
-              jb.swipeables.splice(i, 0, instance);
-              bInserted = true;
-              break;
-          }
-      }
-
-      if (!bInserted) {
-          jb.swipeables.instances.push(instance);
-      }
-    },
-
-    swipeableEnable: function() {
-      this.bSwipeableEnabled = true;
-    },
-
-    swipeableDisable: function() {
-      this.bSwipeableEnabled = false;
-    }
-};
-
-blueprints.mixins["swipeable"] = jb.swipeables;
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-// ooooo   ooooo oooooooooooo ooooo        ooooooooo.   oooooooooooo ooooooooo.    .oooooo.o
-// `888'   `888' `888'     `8 `888'        `888   `Y88. `888'     `8 `888   `Y88. d8P'    `Y8
-//  888     888   888          888          888   .d88'  888          888   .d88' Y88bo.
-//  888ooooo888   888oooo8     888          888ooo88P'   888oooo8     888ooo88P'   `"Y8888o.
-//  888     888   888    "     888          888          888    "     888`88b.         `"Y88b
-//  888     888   888       o  888       o  888          888       o  888  `88b.  oo     .d8P
-// o888o   o888o o888ooooood8 o888ooooood8 o888o        o888ooooood8 o888o  o888o 8""88888P'
-// Helpers //////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// tileSheet Object
-///////////////////////////////////////////////////////////////////////////////
-jb.tileSheetObj = function(source, cellDx, cellDy, left, top, right, bottom) {
-  this.source = source;
-  this.top = top;
-  this.left = left;
-  this.cellDx = cellDx;
-  this.cellDy = cellDy;
-
-  if (typeof left === 'undefined') left = 0;
-  if (typeof top === 'undefined') top = 0;
-  if (typeof right === 'undefined') right = source.width - 1;
-  if (typeof bottom === 'undefined') bottom = source.height - 1;
-  
-  this.left = left;
-  this.top = top;
-
-  this.rows = (bottom - top + 1) / cellDy;
-  this.cols = (right - left + 1) / cellDx;
-};
-
-jb.tileSheetObj.prototype.draw = function(ctxt, destX, destY, cellRow, cellCol, scaleX, scaleY, rotation, anchorX, anchorY) {
-  var offsetX = 0,
-      offsetY = 0,
-      dx = 0,
-      dy = 0;
-      
-  if (typeof scaleX === 'undefined') scaleX = 1;
-  if (typeof scaleY === 'undefined') scaleY = 1;
-  if (typeof rotation === 'undefined') rotation = 0;
-  if (typeof anchorX === 'undefined') anchorX = 0;
-  if (typeof anchorY === 'undefined') anchorY = 0;
-
-  if (typeof cellRow === 'undefined' || typeof cellRow === 'object') { // 'object' indicates 'null' was passed in for cellRow
-    // Assume cellRow is actually a 1D array index into the sheet.
-    cellCol = cellRow % this.cols;
-    cellRow = Math.floor(cellRow / this.cols);
-  }
-
-  ctxt.save();
-  if (rotation || scaleX < 0 || scaleY < 0) {
-    if (scaleX < 0) {
-      offsetX = Math.round(this.cellDx * (anchorX - 0.5) * scaleX / Math.abs(scaleX));
-    }
-      
-    if (scaleY < 0) {
-      offsetY = Math.round(this.cellDy * (anchorY - 0.5) * scaleY / Math.abs(scaleY));
-    }
-
-    dx = destX + offsetX;
-    dy = destY + offsetY;
-
-    ctxt.translate(dx, dy);
-    destX = -offsetX;
-    destY = -offsetY;
-
-    if (scaleX !== 1.0 || scaleY !== 1.0) {
-      ctxt.scale(scaleX, scaleY);
-      scaleX = 1.0;
-      scaleY = 1.0;
-    }
-
-    ctxt.rotate(rotation);
-  }
-
-  ctxt.drawImage(this.source,
-                 this.left + cellCol * this.cellDx - 0.25 / scaleX, // 0.25 / scaleX -> HACK to prevent anti-aliasing from adding extra pixels when drawing a scaled sprite.
-                 this.top + cellRow * this.cellDy + 0.25 / scaleY, // 0.25 / scaleY -> HACK to prevent anti-aliasing from adding extra pixels when drawing a scaled sprite.
-                 this.cellDx,
-                 this.cellDy,
-                 destX,
-                 destY,
-                 Math.round(this.cellDx * scaleX),
-                 Math.round(this.cellDy * scaleY));
-
-  ctxt.restore();
-};
-
-jb.tileSheetObj.prototype.drawTile = function(ctxt, left, top, destRow, destCol, cellRow, cellCol, scaleX, scaleY) {
-  if (arguments.length < 7) {
-    // Assume cellRow is actually a 1D array index into the sheet.
-    cellCol = cellRow % this.cols;
-    cellRow = Math.floor(cellRow / this.cols);
-  }
-
-  scaleX = scaleX || 1;
-  scaleY = scaleY || 1;
-
-  ctxt.drawImage(this.source,
-                 this.left + cellCol * this.cellDx,
-                 this.top + cellRow * this.cellDy,
-                 this.cellDx,
-                 this.cellDy,
-                 left + destCol * this.cellDx * scaleX,
-                 top + destRow * this.cellDy * scaleY,
-                 this.cellDx * scaleX,
-                 this.cellDy * scaleY);
-}
-
-jb.tileSheetObj.prototype.getCellWidth = function() {
-  return this.cellDx;
-};
-
-jb.tileSheetObj.prototype.getCellHeight = function() {
-  return this.cellDy;
-};
-
-jb.tileSheetObj.prototype.getNumCells = function() {
-  return this.rows * this.cols;
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 // Array Utilities
 ///////////////////////////////////////////////////////////////////////////////
@@ -1046,6 +86,327 @@ jb.randomizeArray = function(array) {
             clearTimeout(id);
         };
 }());
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// oooooooooo.  ooooo        ooooo     ooo oooooooooooo ooooooooo.   ooooooooo.   ooooo ooooo      ooo ooooooooooooo  .oooooo.o
+// `888'   `Y8b `888'        `888'     `8' `888'     `8 `888   `Y88. `888   `Y88. `888' `888b.     `8' 8'   888   `8 d8P'    `Y8
+//  888     888  888          888       8   888          888   .d88'  888   .d88'  888   8 `88b.    8       888      Y88bo.
+//  888oooo888'  888          888       8   888oooo8     888ooo88P'   888ooo88P'   888   8   `88b.  8       888       `"Y8888o.
+//  888    `88b  888          888       8   888    "     888          888`88b.     888   8     `88b.8       888           `"Y88b
+//  888    .88P  888       o  `88.    .8'   888       o  888          888  `88b.   888   8       `888       888      oo     .d8P
+// o888bood8P'  o888ooooood8    `YbodP'    o888ooooood8 o888o        o888o  o888o o888o o8o        `8      o888o     8""88888P'
+// Blueprints //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Usage:
+//
+// Define a new blueprint:
+// blueprints.draft(
+//   "testKnight",
+//
+//   // Data
+//   {
+//     ...
+//   },
+//
+//   // Actions
+//   {
+//     ...
+//   },
+// );
+//
+// Extend an existing blueprint with components:
+// blueprints.make("testKnight", "touchable")
+//
+// Instantiate an object from a blueprint:
+// blueprints.build("testKnight");
+//
+blueprints = {
+  mixins: {},
+
+  make: function(blueprint, extension) {
+      var key = null,
+          bpData = blueprints[blueprint],
+          mixin = blueprints.mixins[extension],
+          proto = bpData ? bpData.proto : null;
+
+      if (bpData && mixin && proto) {
+          for (key in mixin) {
+              if (key.indexOf(extension) >= 0) {
+                  proto[key] = mixin[key];
+              }
+          }
+
+          proto._components.push(extension);
+      }
+  },
+
+  draft: function(name, dataObj, classObj) {
+      var args = Array.prototype.slice.call(arguments),
+          propObj = {},
+          key = null;
+
+      if (!blueprints[name]) {
+          classObj._components = [];
+          classObj.destroy = function() {
+              var i = 0;
+
+              for (i=0; i<this._components.length; ++i) {
+                  blueprints.mixins[this._components[i]].destroy(this);
+              }
+          }
+
+          for (key in dataObj) {
+              propObj[key] = {value: dataObj[key], writable: true, enumerable: true, configurable: true};
+          }
+
+          blueprints[name] = {data: propObj, proto: classObj};
+      }
+  },
+
+  build: function(name) {
+      var instance = null,
+          template = blueprints[name],
+          i = 0,
+          mixin = null,
+          args = [];
+
+      if (template) {
+          // Build argument list.
+          for (i=1; i<arguments.length; ++i) {
+            args.push(arguments[i]);
+          }
+
+          instance = Object.create(template.proto, JSON.parse(JSON.stringify(template.data)));
+
+          for (i=0; i<template.proto._components.length; ++i) {
+              mixin = blueprints.mixins[template.proto._components[i]];
+              if (mixin) {
+                  mixin.spawn(instance);
+              }
+          }
+
+          if (instance.onCreate) {
+              instance.onCreate.apply(instance, args);
+          }
+      }
+
+      return instance;
+  }
+};
+///////////////////////////////////////////////////////////////////////////////
+// Touchables -----------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+jb.touchables = {
+  // Blueprint Interface ////////////////////////////////////////////////////
+  spawn: function(instance) {
+      var i = 0,
+          bInserted = false;
+
+      jb.touchables.makeInstance(instance);
+      jb.touchables.instances.unshift(instance);
+  },
+
+  destroy: function(instance) {
+      var index = jb.touchables.instances.indexOf(instance);
+
+      // Remove the instance from the instances array.
+      // TODO: replace 'splice' with an optimizable function.
+      if (index >= 0) {
+          jb.touchables.instances.splice(index, 1);
+      }
+  },
+
+  // 'Touchables' Implementation ////////////////////////////////////////////
+  instances: [],
+
+  makeInstance: function(instance) {
+      if (!instance.bounds) {
+          instance.bounds = new jb.bounds(0, 0, 0, 0);
+      }
+
+      if (!instance.touchLayer) {
+          instance.touchLayer = 0;
+      }
+
+      if (!instance.onTouched) {
+        instance.onTouched = null;
+      }
+
+      if (!instance.onUntouched) {
+        instance.onUntouched = null;
+      }
+
+      instance.bTouchableEnabled = true;
+  },
+
+  getTouched: function(screenX, screenY) {
+      var i,
+          touched = null,
+          x = jb.screenToWorldX(screenX),
+          y = jb.screenToWorldY(screenY);
+
+      for (i=jb.touchables.instances.length - 1; i>=0; --i) {
+          if (jb.touchables.instances[i].bTouchableEnabled && jb.touchables.instances[i].bounds.contain(x, y)) {
+              touched = jb.touchables.instances[i];
+              if (touched.onTouched) {
+                touched.onTouched.call(touched, screenX, screenY);
+              }
+              break;
+          }
+      }
+
+      return touched;
+  },
+
+  // Mixins ---------------------------------------------
+  // All "mixin" functions must start with the prefix
+  // "touchable" in order to flag their inclusion into
+  // the specified prototypes.
+  // e.g.:
+  //     touchableGetLayer: function() { .. },
+  touchableSetLayer: function(newLayer) {
+    if (jb.touchables.instances.indexOf(this) >= 0) {
+      jb.removeFromArray(jb.touchables.instances, this, true);
+    }
+
+    this.touchLayer = Math.max(0, newLayer);
+
+    for (i=0; i<jb.touchables.instances.length; ++i) {
+        if (instance.touchLayer <= jb.touchables.instances[i].touchLayer) {
+            // Insert the instance at this point.
+            // TODO: replace 'splice' with an optimizable function.
+            jb.touchables.splice(i, 0, instance);
+            bInserted = true;
+            break;
+        }
+    }
+
+    if (!bInserted) {
+        jb.touchables.instances.push(instance);
+    }
+  },
+
+  touchableEnable: function() {
+    this.bTouchableEnabled = true;
+  },
+
+  touchableDisable: function() {
+    this.bTouchabelDisabled = false;
+  }
+};
+
+blueprints.mixins["touchable"] = jb.touchables;
+
+///////////////////////////////////////////////////////////////////////////////
+// Swipeables -----------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+jb.swipeables = {
+  // Blueprint Interface ////////////////////////////////////////////////////
+  spawn: function(instance) {
+      var i = 0,
+          bInserted = false;
+
+      jb.swipeables.makeInstance(instance);
+
+      if (!bInserted) {
+          jb.swipeables.instances.push(instance);
+      }
+  },
+
+  destroy: function(instance) {
+      var index = jb.swipeables.instances.indexOf(instance);
+
+      // Remove the instance from the instances array.
+      // TODO: replace 'splice' with an optimizable function.
+      if (index >= 0) {
+          jb.swipeables.instances.splice(index, 1);
+      }
+  },
+
+  // 'Swipeables' Implementation ////////////////////////////////////////////
+  instances: [],
+
+  makeInstance: function(instance) {
+      if (!instance.bounds) {
+          instance.bounds = new jb.bounds(0, 0, 0, 0);
+      }
+
+      instance.touchLayer = 0;
+      instance.bSwipeableEnabled = true;
+
+      if (!instance.onTouched) {
+        instance.onTouched = null;
+      }
+
+      if (!instance.onUntouched) {
+        instance.onUntouched = null;
+      }
+  },
+
+  getSwiped: function() {
+      var i,
+          swiped = null,
+          sx = jb.screenToWorldX(jb.swipe.lastX),
+          sy = jb.screenToWorldY(jb.swipe.lastY),
+          ex = jb.screenToWorldX(jb.swipe.endX),
+          ey = jb.screenToWorldY(jb.swipe.endY);
+
+      jb.swipe.allSwiped.length = 0;
+
+      for (i=jb.swipeables.instances.length - 1; i>=0; --i) {
+          if (jb.swipeables.instances[i].bSwipeableEnabled && (jb.swipeables.instances[i].bounds.intersectLine(sx, sy, ex, ey))) {
+            swiped = jb.swipeables.instances[i];
+
+            jb.swipe.allSwiped.push(swiped);
+
+            if (jb.swipe.swiped.indexOf(swiped) < 0) {
+              jb.swipe.swiped.push(swiped);
+
+              if (swiped.onSwiped) {
+                swiped.onSwiped.call(swiped);
+              }
+            }
+          }
+      }
+  },
+
+  // Mixins ---------------------------------------------
+  // All "mixin" functions must start with the prefix
+  // "swipeable" in order to flag their inclusion into
+  // the specified prototypes.
+  // e.g.:
+  //     swipeableGetLayer: function() { .. },
+  swipeableSetLayer: function(newLayer) {
+    if (jb.swipeables.instances.indexOf(this) >= 0) {
+      jb.removeFromArray(jb.swipeables.instances, this, true);
+    }
+
+    this.swipeLayer = Math.max(0, newLayer);
+
+    for (i=0; i<jb.swipeables.instances.length; ++i) {
+        if (instance.swipeLayer <= jb.swipeables.instances[i].swipeLayer) {
+            // Insert the instance at this point.
+            // TODO: replace 'splice' with an optimizable function.
+            jb.swipeables.splice(i, 0, instance);
+            bInserted = true;
+            break;
+        }
+    }
+
+    if (!bInserted) {
+        jb.swipeables.instances.push(instance);
+    }
+  },
+
+  swipeableEnable: function() {
+    this.bSwipeableEnabled = true;
+  },
+
+  swipeableDisable: function() {
+    this.bSwipeableEnabled = false;
+  }
+};
+
+blueprints.mixins["swipeable"] = jb.swipeables;
 
 ///////////////////////////////////////////////////////////////////////////////
 // ooo        ooooo       .o.       ooooooooooooo ooooo   ooooo
@@ -1308,267 +669,94 @@ jb.MathEx.Spline3D.prototype.getPoint = function(position) {
           z: this.zCubics[cubicNum].getValueAt(cubicPos)};
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// .oooooo..o                   o8o      .             oooo         .o8                                          .o8
-// d8P'    `Y8                   `"'    .o8             `888        "888                                         "888
-// Y88bo.      oooo oooo    ooo oooo  .o888oo  .ooooo.   888 .oo.    888oooo.   .ooooo.   .oooo.   oooo d8b  .oooo888
-// `"Y8888o.   `88. `88.  .8'  `888    888   d88' `"Y8  888P"Y88b   d88' `88b d88' `88b `P  )88b  `888""8P d88' `888
-//     `"Y88b   `88..]88..8'    888    888   888        888   888   888   888 888   888  .oP"888   888     888   888
-// oo     .d8P    `888'`888'     888    888 . 888   .o8  888   888   888   888 888   888 d8(  888   888     888   888
-// 8""88888P'      `8'  `8'     o888o   "888" `Y8bod8P' o888o o888o  `Y8bod8P' `Y8bod8P' `Y888""8o d888b    `Y8bod88P"
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-jb.switchboard = {
-  toAdd: [],
-  toRemove: [],
-  messageTable: {},
-};
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ooo        ooooo oooooooooooo  .oooooo..o  .oooooo..o       .o.         .oooooo.    oooooooooooo  .oooooo..o
+// `88.       .888' `888'     `8 d8P'    `Y8 d8P'    `Y8      .888.       d8P'  `Y8b   `888'     `8 d8P'    `Y8
+//  888b     d'888   888         Y88bo.      Y88bo.          .8"888.     888            888         Y88bo.
+//  8 Y88. .P  888   888oooo8     `"Y8888o.   `"Y8888o.     .8' `888.    888            888oooo8     `"Y8888o.
+//  8  `888'   888   888    "         `"Y88b      `"Y88b   .88ooo8888.   888     ooooo  888    "         `"Y88b
+//  8    Y     888   888       o oo     .d8P oo     .d8P  .8'     `888.  `88.    .88'   888       o oo     .d8P
+// o8o        o888o o888ooooood8 8""88888P'  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8 8""88888P'
+// Messages ///////////////////////////////////////////////////////////////////////////////////////////////////
+jb.messages = {
+  registry: {},
+  queryRegistry: {},
+  args: [],
 
-jb.switchboard.addListener = function(listener, message) {
-  jb.assert(listener, "No listener defined!");
-  jb.assert(message, "No message defined!");
-  
-  this.toAdd.push({listener: listener, message: message});
-};
+  listen: function(message, listener) {
+    var listeners = null;
 
-jb.switchboard.removeListener = function(listener, message) {
-  jb.assert(listener, "No listener defined!");
-  this.toRemove.push({listener: listener, message: message});
-};
-
-jb.switchboard.update = function() {
-  this.removePendingListeners();
-  this.addPendingListeners();
-};
-
-jb.switchboard.clear = function() {
-  jb.toAdd.length = 0;
-  jb.toRemove.length = 0;
-  jb.messageTable = {};
-};
-
-jb.switchboard.addPendingListeners = function() {
-  while (this.toAdd.length > 0) {
-    var listener = this.toAdd[0][listener];
-    var message = this.toAdd[0][message].toLowerCase();
-    this.toAdd.shift();
-    
-    if (!this.messageTable[message]) {
-      this.messageTable[message] = [];
+    if (!this.registry[message]) {
+      this.registry[message] = [];
     }
-    
-    var listeners = this.messageTable[message];
+
+    listeners = this.registry[message];
+
     if (listeners.indexOf(listener) < 0) {
       listeners.push(listener);
     }
-  }
-};
+  },
 
-jb.switchboard.removePendingListeners = function() {
-  while (this.toRemove.length > 0) {
-    var listener = this.toRemove[0][listener];
-    var message = this.toRemove[0][message].toLowerCase();
-    this.toRemove.shift();
-    
-    if (message) {
-      var listeners = this.messageTable[message];
-      
-      if (listeners && listeners.indexOf(listener) >= 0) {
-        jb.removeFromArray(listeners, listener);
+  answer: function(message, answerer) {
+    var answerers = null;
+
+    if (!this.queryRegistry[message]) {
+      this.queryRegistry[message] = [];
+    }
+
+    answerers = this.queryRegistry[message];
+
+    if (answerers.indexOf(answerer) < 0) {
+      answerers.push(answerer);
+    }
+  },
+
+  unlisten: function(message, listener) {
+    if (this.registry[message] && this.registry[message].indexOf(listener) >= 0) {
+      jb.removeFromArray(this.registry[message], listener, true);
+    }
+  },
+
+  unanswer: function(message, answerer) {
+    if (this.queryRegistry[message] && this.queryRegistry[message].indexOf(answerer) >= 0) {
+      jb.removeFromArray(this.queryRegistry[message], answerer, true);
+    }
+  },
+
+  query: function(message, querier) {
+    var i = 0,
+        answerer = null;
+
+    if (querier && (typeof querier[message] === "function") && this.queryRegistry[message]) {
+      for (i=0; i<this.queryRegistry[message].length; ++i) {
+        // Call the querier's function, sending the current listener as the argument.
+        answerer = this.queryRegistry[message][i];
+        querier[message].call(querier, answerer);
       }
     }
-    else {
-      for ([message, listeners] of Object.entries(this.messageTable)) {
-        if (listeners.indexOf(listener) >= 0) {
-          jb.removeFromArray(listeners, listener);
+  },
+
+  send: function(message) {
+    var i = 0,
+        listener = null;
+
+    if (this.registry[message]) {
+      this.args.length = 0;
+
+      for (i=1; i<arguments.length; ++i) {
+        this.args.push(arguments[i]);
+      }
+
+      for (i=0; i<this.registry[message].length; ++i) {
+        listener = this.registry[message][i];
+
+        if (listener) {
+          listener[message].apply(listener, this.args);
         }
       }
     }
   }
-};
-
-jb.switchboard.broadcast = function(message, arg) {
-  var listeners = this.messageTable[message.toLowerCase()];
-  if (listeners) {
-    for (var listener in listeners) {
-      listeners[message](arg);
-    }
-  }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// ooooooooooooo oooooo   oooo ooooooooo.   oooooooooooo  .oooooo.o
-// 8'   888   `8  `888.   .8'  `888   `Y88. `888'     `8 d8P'    `Y8
-//      888        `888. .8'    888   .d88'  888         Y88bo.
-//      888         `888.8'     888ooo88P'   888oooo8     `"Y8888o.
-//      888          `888'      888          888    "         `"Y88b
-//      888           888       888          888       o oo     .d8P
-//     o888o         o888o     o888o        o888ooooood8 8""88888P'
-// Types //////////////////////////////////////////////////////////////////////
-jb.bounds = function(left, top, width, height) {
-    this.set(left, top, width, height);
-    this.isBound = true;
-};
-
-jb.bounds.prototype.clear = function() {
-  this.t = 0;
-  this.l = 0;
-  this.w = 0;
-  this.h = 0;
-};
-
-jb.bounds.prototype.set = function(left, top, width, height) {
-    this.t = top || 0;
-    this.l = left || 0;
-    this.w = width || 0;
-    this.h = height || 0;
-
-    this.halfWidth = Math.round(this.w * 0.5);
-    this.halfHeight = Math.round(this.h * 0.5);
-};
-
-jb.bounds.prototype.contain = function(x, y) {
-    return this.l <= x && this.l + this.w >= x &&
-           this.t <= y && this.t + this.h >= y;
-};
-
-jb.bounds.prototype.intersectLine = function(sx, sy, ex, ey) {
-  return jb.MathEx.linesIntersect(sx, sy, ex, ey, this.l, this.t, this.l + this.w, this.t) ||
-         jb.MathEx.linesIntersect(sx, sy, ex, ey, this.l + this.w, this.t, this.l + this.w, this.t + this.h) ||
-         jb.MathEx.linesIntersect(sx, sy, ex, ey, this.l + this.w, this.t + this.h, this.l, this.t + this.h) ||
-         jb.MathEx.linesIntersect(sx, sy, ex, ey, this.l, this.t + this.h, this.l, this.t) ||
-         // These last two tests shouldn't be necessary, but inaccuracies in the above four
-         // tests might make them necessary.
-         this.contain(sx, sy) ||
-         this.contain(ex, ey);
-};
-
-jb.bounds.prototype.copy = function(dest) {
-    dest.t = this.t;
-    dest.l = this.l;
-    dest.w = this.w;
-    dest.h = this.h;
-    dest.halfWidth = this.halfWidth;
-    dest.halfHeight = this.halfHeight;
-};
-
-jb.bounds.prototype.scale = function(sx, sy, anchorX, anchorY) {
-    var xScale = sx || 1,
-        yScale = sy || xScale,
-        anchorPoint;
-
-    xScale = Math.abs(xScale);
-    yScale = Math.abs(yScale);
-    anchorX = anchorX === undefined ? 0.5 : anchorX;
-    anchorY = anchorY === undefined ? 0.5 : anchorY;
-
-    anchorPoint = this.t + this.h * anchorY;
-    this.h = Math.round(this.h * yScale);
-    this.t = Math.round(anchorPoint - this.h * anchorY);
-
-    anchorPoint = this.l + this.w * anchorX;
-    this.w = Math.round(this.w * xScale);
-    this.l = Math.round(anchorPoint - this.w * anchorX);
-
-    this.halfWidth = Math.round(this.w * 0.5);
-    this.halfHeight = Math.round(this.h * 0.5);
-};
-
-jb.bounds.prototype.moveTo = function(left, top) {
-    this.t = top;
-    this.l = left;
-};
-
-jb.bounds.prototype.moveBy = function(dl, dt) {
-    this.t += dt;
-    this.l += dl;
-};
-
-jb.bounds.prototype.resizeTo = function(width, height) {
-    this.w = width;
-    this.h = height;
-    
-    this.screen
-
-    this.halfWidth = Math.round(this.w * 0.5);
-    this.halfHeight = Math.round(this.h * 0.5);
-};
-
-jb.bounds.prototype.resizeBy = function(dw, dh) {
-    this.w += dw;
-    this.h += dh;
-
-    this.halfWidth = Math.round(this.w * 0.5);
-    this.halfHeight = Math.round(this.h * 0.5);
-};
-
-jb.bounds.prototype.overlap = function(other) {
-    var bInLeftRight = false,
-        bInTopBottom = false;
-
-    jb.assert(other, "jb.bounds.intersect: invalid 'other'!");
-
-    if (this.l < other.l) {
-        bInLeftRight = other.l < this.l + this.w;
-    }
-    else {
-        bInLeftRight = this.l < other.l + other.w;
-    }
-
-    if (this.t < other.t) {
-        bInTopBottom = other.t < this.t + this.h;
-    }
-    else {
-        bInTopBottom = this.t < other.t + other.h;
-    }
-
-    return bInLeftRight && bInTopBottom;
-};
-
-jb.bounds.prototype.intersect = function(other) {
-    var bInLeftRight = false,
-        bInTopBottom = false;
-
-    jb.assert(other, "jb.bounds.intersect: invalid 'other'!");
-
-    if (this.l < other.l) {
-        bInLeftRight = other.l <= this.l + this.w;
-    }
-    else {
-        bInLeftRight = this.l <= other.l + other.w;
-    }
-
-    if (this.t < other.t) {
-        bInTopBottom = other.t <= this.t + this.h;
-    }
-    else {
-        bInTopBottom = this.t <= other.t + other.h;
-    }
-
-    return bInLeftRight && bInTopBottom;
-};
-
-jb.bounds.prototype.intersection = function(other, result) {
-    jb.assert(other && other.isBound, "jb.bounds.intersection: invalid 'other'!");
-    jb.assert(result && result.isBound, "jb.bounds.intersection: invalid 'result'!");
-
-    if (this.l < other.l) {
-        result.l = other.l;
-        result.w = Math.min(this.l + this.w, other.l + other.w) - result.l;
-    }
-    else {
-        result.l = this.l;
-        result.w = Math.min(this.l + this.w, other.l + other.w) - result.l;
-    }
-
-    if (this.t < other.t) {
-        result.t = other.t;
-        result.h = Math.min(this.t + this.h, other.t + other.h) - result.l;
-    }
-    else {
-        result.t = this.t;
-        result.h = Math.min(this.t + this.h, other.t + other.h) - result.l;
-    }
-};
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // oooooo     oooo ooo        ooooo
@@ -1621,7 +809,6 @@ jb.run = function(program) {
 
     if (program) {
         if (!jb.bStarted) {
-            // TODO: add initialization here?
             jb.bStarted = true;
         }
 
@@ -1686,73 +873,47 @@ jb.end = function() {
 
 // Interal Methods /////////////////////////////////////////////////////////////
 jb.loop = function() {
-  if (jb.pixiRenderer) {
-    jb.screen.width = jb.pixiRenderer.width;
-    jb.screen.height = jb.pixiRenderer.height;
-  }
+    jb.updateTimers();
 
-  jb.updateTimers();
-  jb.stateMachines.update();
-  jb.transitions.update();
-  jb.switchboard.update();
+    if (jb.bInterrupt) {
+        jb.nextInstruction();
+    }
+    else if (jb.execStack.length > 0) {
+        if (jb.execStack[0].loopingRoutine) {
+            jb.execStack[0].bWhile = null;
+            jb.execStack[0].bUntil = null;
+            jb.execStack[0].loopingRoutine.bind(jb.context)();
 
-  if (jb.bInterrupt) {
-      jb.nextInstruction();
-  }
-  else if (jb.execStack.length > 0) {
-      if (jb.execStack[0].loopingRoutine) {
-          jb.execStack[0].bWhile = null;
-          jb.execStack[0].bUntil = null;
-          jb.execStack[0].loopingRoutine.bind(jb.context)();
+            if (jb.execStack[0].bWhile === null && jb.execStack[0].bUntil === null) {
+                jb.logToConsole("Missing 'jb.while' or 'jb.until' in " + jb.instructions[jb.execStack[0].pc].label);
+                jb.end();
+            }
+            else if (jb.execStack[0].bUntil === true) {
+                jb.nextInstruction();
+            }
+            else if (jb.execStack[0].bWhile === false) {
+                jb.nextInstruction();
+            }
+        }
+        else if (jb.execStack[0].pc < jb.instructions.length) {
+            jb.nextInstruction();
+        }
+    }
 
-          if (jb.execStack[0].bWhile === null && jb.execStack[0].bUntil === null) {
-              jb.print("Missing 'jb.while' or 'jb.until' in " + jb.instructions[jb.execStack[0].pc].label);
-              jb.end();
-          }
-          else if (jb.execStack[0].bUntil === true) {
-              jb.nextInstruction();
-          }
-          else if (jb.execStack[0].bWhile === false) {
-              jb.nextInstruction();
-          }
-      }
-      else if (jb.execStack[0].pc < jb.instructions.length) {
-          jb.nextInstruction();
-      }
-  }
+    jb.render();
 };
 
-// jb.render = function() {
-//     if (jb.execStack.length <= 0 && jb.bShowStopped) {
-//         jb.bShowStopped = false;
-//         jb.print("`");
-//         jb.print("--- stopped ---");
-//     }
+jb.render = function() {
+    if (jb.execStack.length <= 0 && jb.bShowStopped) {
+        jb.bShowStopped = false;
+        jb.logToConsole("--- stopped ---");
+    }
 
-//     if (jb.canvas && jb.screen.width > 0 && jb.screen.height > 0) {
+    // Rendering code goes here...
 
-//       // Refresh the screen.
-//       jb.screenBufferCtxt.save();
-
-//       // Clear screen.
-//       jb.screenBufferCtxt.fillStyle = "black";
-//       jb.screenBufferCtxt.fillRect(0, 0, jb.screen.width, jb.screen.height);
-
-//       if (Math.abs(1 - jb.viewScale) > jb.EPSILON) {
-//         jb.screenBufferCtxt.scale(jb.viewScale, jb.viewScale);
-//       }
-//       jb.screenBufferCtxt.translate(-jb.viewOrigin.x, -jb.viewOrigin.y);
-//       jb.screenBufferCtxt.drawImage(jb.canvas, 0, 0);
-//       jb.screenBufferCtxt.restore();
-
-//       if (jb.program && jb.program.drawGUI && jb.screenBufferCtxt) {
-//         jb.program.drawGUI(jb.screenBufferCtxt);
-//       }
-//     }
-
-//     // Request a new a update.
-//     requestAnimationFrame(jb.loop);
-// };
+    // Request a new a update.
+    requestAnimationFrame(jb.loop);
+};
 
 jb.nextInstruction = function() {
     var instr = null;
@@ -1850,92 +1011,6 @@ jb.timerLast = function(timerName) {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// oooooo     oooo ooooo oooooooooooo oooooo   oooooo     oooo
-//  `888.     .8'  `888' `888'     `8  `888.    `888.     .8'
-//   `888.   .8'    888   888           `888.   .8888.   .8'
-//    `888. .8'     888   888oooo8       `888  .8'`888. .8'
-//     `888.8'      888   888    "        `888.8'  `888.8'
-//      `888'       888   888       o      `888'    `888'
-//       `8'       o888o o888ooooood8       `8'      `8'
-// View ////////////////////////////////////////////////////////////////////////
-// Get canvas and resize to fit window.
-jb.NEWLINE = "`";
-jb.OPEN_TYPE_FONT_DEFAULT_VALIGN = 0.5;
-jb.OPEN_TYPE_FONT_DEFAULT_HALIGN = 0.5;
-jb.OPEN_TYPE_FONT_DEFAULT_COLOR = "white";
-jb.columns = 80;
-jb.viewScale = 1;
-jb.viewOrigin = {x: 0, y: 0 };
-jb.rows = 25;
-jb.COL_TO_CHAR = 12 / 20;
-jb.COL_TO_CHAR_SPACING = 11.69 / 20;
-jb.backColor = "black";
-jb.foreColor = "green";
-jb.fontSize = 1;
-jb.row = 0;
-jb.col = 0;
-jb.fontInfo = null;
-jb.bCursorOn = false;
-jb.cellSize = {width: 0, height: 0};
-jb.globalScale = 1;
-jb.openTypeFont = null;
-jb.openTypeFontSize = 1;
-jb.openTypeFontWidthFudge = 1;
-jb.fontMetrics = new jb.bounds(0, 0, 0, 0);
-jb.screen = {width: screen.width, height: screen.height};
-jb.pixiRenderer = null;
-
-jb.setPixiRenderer = function(renderer) {
-  jb.pixiRenderer = renderer;
-};
-
-jb.drawImage = function(ctxt, image, xa, ya, anchorX, anchorY) {
-  var x = xa - anchorX * image.width,
-      y = ya - anchorY * image.height;
-
-    if (ctxt) {
-      ctxt.drawImage(image, x, y);
-    }
-};
-jb.relXtoScreenX = function(relX) {
-  return Math.round(jb.screen.width * relX);
-};
-jb.relYtoScreenY = function(relY) {
-  return Math.round(jb.screen.height * relY);
-};
-jb.screenXtoRelX = function(screenX) {
-  return screenX / jb.screen.width;
-};
-jb.screenYtoRelY = function(screenY) {
-  return screenY / jb.screen.height;
-};
-jb.screenToWorldX = function(screenX) {
-  return screenX / jb.viewScale + jb.viewOrigin.x;
-};
-jb.screenToWorldY = function(screenY) {
-  return screenY / jb.viewScale + jb.viewOrigin.y;
-};
-jb.setViewScale = function(newScale) {
-  jb.viewScale = newScale;
-};
-jb.getViewScale = function() {
-  return jb.viewScale;
-};
-jb.setViewOrigin = function(x, y) {
-  jb.viewOrigin.x = x || 0;
-  jb.viewOrigin.y = y || 0;
-};
-jb.getViewOrigin = function() {
-  return jb.viewOrigin;
-};
-jb.xFromCol = function(col) {
-    return col * jb.cellSize.width;
-};
-jb.yFromRow = function(row) {
-    return row * jb.cellSize.height;
-};
-
-////////////////////////////////////////////////////////////////////////////////
 // ooooo ooooo      ooo ooooooooo.   ooooo     ooo ooooooooooooo
 // `888' `888b.     `8' `888   `Y88. `888'     `8' 8'   888   `8
 //  888   8 `88b.    8   888   .d88'  888       8       888
@@ -1976,7 +1051,7 @@ jb.readLine = function() {
     
     retVal = jb.inputOut;
     jb.inputOut = null;
-
+    
     return retVal;
 };
 
@@ -2049,9 +1124,7 @@ jb.onPress = function(e) {
     }
 
     if (jb.inputState === jb.INPUT_STATES.READ_LINE && jb.input) {
-        jb.cursorTo(jb.row, jb.minCol);
-        jb.printAt(jb.input.charAt(jb.input.length - 1), jb.row + 1, jb.minCol + jb.input.length);
-        jb.cursorTo(jb.row, jb.minCol + jb.input.length);
+      // Draw typed character here.
     }
 };
 
@@ -2091,7 +1164,7 @@ jb.onDown = function(e) {
 
                 jb.input = jb.input.substring(0, jb.input.length - 1);
                 if (jb.col > jb.minCol) {
-                    jb.cursorMove(0, -1);
+                  // Move cursor position here.
                 }
             }
         }
@@ -2228,6 +1301,7 @@ jb.getClientPos = function(touch) {
 
     jb.pointInfo.x = x;
     jb.pointInfo.y = y;
+    jb.pointInfo.srcElement = jb.canvas ? jb.canvas : null;
 };
 
 jb.tap = {bListening: false, x: -1, y: -1, done: false, count: 0, isDoubleTap: false, lastTapTime: 0, touched: null};
@@ -2329,7 +1403,6 @@ jb.gestureStart = function() {
         jb.tap.count = newNow - jb.tap.lastTapTime >= jb.DOUBLE_TAP_INTERVAL ? 1 : jb.tap.count + 1;
         jb.tap.isDoubleTap = jb.tap.count > 1 && newNow - jb.tap.lastTapTime < jb.DOUBLE_TAP_INTERVAL;
         jb.tap.lastTapTime = newNow;
-        jb.tap.touched = jb.touchables.getTouched(x, y);
         jb.tap.done = true;
 
         if (jb.tap.isDoubleTap || jb.tap.count > 1) {
@@ -2392,7 +1465,7 @@ jb.gestureEnd = function() {
 
 jb.touchStart = function(e) {
     if (e) {
-        e.preventDefault();
+        // e.preventDefault();
         e.stopPropagation();
       
         if (e.touches.length === 1) {
@@ -2404,7 +1477,7 @@ jb.touchStart = function(e) {
   
 jb.touchMove = function(e) {
     if (e) {
-        e.preventDefault();
+        // e.preventDefault();
         e.stopPropagation();
       
         if (e.touches.length === 1) {
@@ -2434,457 +1507,9 @@ window.addEventListener("touchstart", jb.touchStart, true);
 window.addEventListener("touchmove", jb.touchMove, true);
 window.addEventListener("touchend", jb.touchEnd, true);
 
-
-///////////////////////////////////////////////////////////////////////////////
-//  .oooooo.o   .oooooo.   ooooo     ooo ooooo      ooo oooooooooo.
-// d8P'    `Y8  d8P'  `Y8b  `888'     `8' `888b.     `8' `888'   `Y8b
-// Y88bo.      888      888  888       8   8 `88b.    8   888      888
-//  `"Y8888o.  888      888  888       8   8   `88b.  8   888      888
-//      `"Y88b 888      888  888       8   8     `88b.8   888      888
-// oo     .d8P `88b    d88'  `88.    .8'   8       `888   888     d88'
-// 8""88888P'   `Y8bood8P'     `YbodP'    o8o        `8  o888bood8P'
-// SOUND //////////////////////////////////////////////////////////////////////
-jb.sound = {
-    DEFAULT_FREQ: 440, // Hz
-    DEFAULT_VOL: 1.0,
-    DEFAULT_DUR: 0.25, // sec
-    CHANNELS: {MONO: 1, STEREO: 2},
-    WAVES_PER_NOISE: 17,
-    FORMAT: {
-        MP3: {ext: 'mp3', mime: 'audio/mpeg'},
-        OGG: {ext: 'ogg', mime: 'audio/ogg; codecs=vorbis'}
-      },
-    DEFAULT_CHANNELS: 2,
-    DEFAULT_DELAY:    0.1,
-    STOP_ALL_CHANNELS:-1,
-    INVALID_CHANNEL:  -99,
-      
-    isEnabled:       true,
-    isAvailable:     window.Audio,
-    preferredFormat: null,
-    sounds:          {},
-
-    masterVolume:    1.0,
-    audioContext: null,
-    noiseFactor: 0.33,
-    channels: 1,
-    dummySound: { audioNode: null, play: function() {}, stop: function() {} },
-
-    init: function() {
-        var capTester = new Audio(),
-            iFormat = 0;
-
-        // Audio resource initialization:
-        for (iFormat in jb.sound.FORMAT) {
-          if (capTester.canPlayType(jb.sound.FORMAT[iFormat].mime) === "probably") {
-            jb.sound.preferredFormat = jb.sound.FORMAT[iFormat];
-            break;
-          }
-        }
-
-        if (!this.preferredFormat) {
-          for (iFormat in jb.sound.FORMAT) {
-            if (capTester.canPlayType(jb.sound.FORMAT[iFormat].mime) === "maybe") {
-              jb.sound.preferredFormat = jb.sound.FORMAT[iFormat];
-              break;
-            }
-          }
-        }
-
-        if (!jb.sound.preferredFormat) {
-          jb.sound.isAvailable = false;
-          jb.sound.isEnabled = false;
-        }
-
-        // Procedural audio initialization:
-        try {
-          window.AudioContext = window.AudioContext || window.webkitAudioContext;
-          this.audioContext = new AudioContext();
-        }
-        catch(e) {
-          alert('Web Audio API is not supported in this browser');
-        }
-    },
-
-    // Sound Resources ----------------------------------------------
-    activate: function() {
-        jb.sound.isEnabled = jb.sound.isAvailable;
-    },
-
-    deactivate: function() {
-        jb.sound.stopAll();
-        jb.sound.isEnabled = false;
-    },
-
-    getFreeChannelIndex: function(sound, now) {
-        var i = 0;
-        var iChannel = jb.sound.INVALID_CHANNEL;
-        var mostDelay = 0;
-        var testDelay = 0;
-
-        if (sound && sound.channels.length && sound.playing.length && sound.lastPlayTime.length) {
-            for (var i=0; i<sound.channels.length; ++i) {
-                testDelay = (now - sound.lastPlayTime[i]) * 0.003;
-                if (testDelay > mostDelay && testDelay > sound.minDelay) {
-                    mostDelay = testDelay;
-                    iChannel = i;
-                }
-            }
-        }
-
-        return iChannel;
-    },
-
-    play: function(sound, volume) {
-        var totalVolume = typeof(volume) === 'undefined' ? 1 : volume,
-            playedIndex = jb.sound.INVALID_CHANNEL,
-            now = Date.now();
-
-        totalVolume = jb.sound.clampVolume(totalVolume * jb.sound.getMasterVolume());
-
-        if (sound) {
-            playedIndex = jb.sound.getFreeChannelIndex(sound, now);
-      
-        try {
-            if (playedIndex !== jb.sound.INVALID_CHANNEL) {
-                sound.iChannel = playedIndex;
-                sound.lastPlayTime[playedIndex] = now;
-                sound.channels[playedIndex].pause();
-                sound.channels[playedIndex].loop = false;
-                sound.channels[playedIndex].volume = totalVolume;
-                sound.channels[playedIndex].currentTime = 0;
-                sound.playing[playedIndex] = true;
-                sound.channels[playedIndex].play();
-            }
-        }
-        catch(err) {
-            // Error message?
-        }
-    }
-
-    return playedIndex;
-    },
-
-    loop: function(sound, volume) {
-        var now = Date.now(),
-            totalVolume = typeof(volume) === 'undefined' ? 1 : volume,
-            playedIndex = jb.sound.INVALID_CHANNEL;
-
-        totalVolume = jb.sound.clampVolume(totalVolume * jb.sound.getMasterVolume());
-
-        if (sound) {
-            playedIndex = jb.sound.getFreeChannelIndex(sound, now);
-          
-            try {
-                if (playedIndex !== jb.sound.INVALID_CHANNEL) {
-                  sound.iChannel = playedIndex;
-                  sound.lastPlayTime[playedIndex] = now;
-                  sound.channels[playedIndex].pause();
-                  sound.channels[playedIndex].loop = true;
-                  sound.channels[playedIndex].volume = totalVolume;
-                  sound.channels[playedIndex].currentTime = 0;
-                  sound.playing[playedIndex] = true;
-                  sound.channels[playedIndex].play();
-                }
-            }
-            catch(err) {
-            // Error message?
-            }
-        }
-
-        return playedIndex;
-    },
-
-    pause: function(sound, channelIndex) {
-        var iChannel = 0,
-            iStart = typeof(channelIndex) === 'undefined' || channelIndex === jb.sound.INVALID_CHANNEL ? 0 : channelIndex,
-            iEnd = typeof(channelIndex) === 'undefined' || channelIndex === jb.sound.INVALID_CHANNEL ? sound.channels.length - 1 : channelIndex;
-
-        for (iChannel = iStart; iChannel <= iEnd; ++iChannel) {
-            sound.channels[iChannel].pause();
-            sound.playing[iChannel] = false;
-        }
-    },
-
-    resume: function(sound, channelIndex) {
-        var iChannel = 0,
-            iStart = typeof(channelIndex) === 'undefined' || channelIndex === jb.sound.INVALID_CHANNEL ? 0 : channelIndex,
-            iEnd = typeof(channelIndex) === 'undefined' || channelIndex === jb.sound.INVALID_CHANNEL ? sound.channels.length - 1 : channelIndex;
-
-        for (iChannel = iStart; iChannel <= iEnd; ++iChannel) {
-            sound.channels[iChannel].play();
-            sound.playing[iChannel] = true;
-        }
-    },
-
-    stop: function(sound, channelIndex) {
-        var iChannel = 0,
-            iStart = typeof(channelIndex) === 'undefined' || channelIndex === jb.sound.INVALID_CHANNEL ? 0 : channelIndex,
-            iEnd = typeof(channelIndex) === 'undefined' || channelIndex === jb.sound.INVALID_CHANNEL ? sound.channels.length - 1 : channelIndex;
-
-        channelIndex = channelIndex || jb.sound.STOP_ALL_CHANNELS;
-
-        if (channelIndex === jb.sound.STOP_ALL_CHANNELS) {
-            iStart = 0;
-            iEnd = sound.channels.length - 1;
-        }
-
-        try {
-            for (iChannel = iStart; iChannel <= iEnd; ++iChannel) {
-                sound.channels[iChannel].pause();
-                sound.channels[iChannel].loop = false;
-                sound.channels[iChannel].currentTime = 0;
-                sound.playing[iChannel] = false;
-            }
-        }
-        catch(err) {
-            // Error message?
-        }
-    },
-
-    stopAll: function() {
-        var key;
-
-        for (key in jb.sound.sounds) {
-            jb.sound.stop(jb.sound.sounds[key], jb.sound.STOP_ALL_CHANNELS);
-        }
-    },
-
-    setMasterVolume: function(newMasterVolume) {
-        jb.sound.masterVolume = jb.sound.clampVolume(newMasterVolume);
-    },
-
-    getMasterVolume: function() {
-        return jb.sound.masterVolume;
-    },
-
-    clampVolume: function(volume) {
-        return Math.min(1, Math.max(0, volume));
-    },
-
-    load: function(resourceName, onLoadedCallback, onErrorCallback, nChannels, replayDelay) {
-        var numChannels = nChannels || jb.sound.DEFAULT_CHANNELS,
-            minReplayDelay = replayDelay || jb.sound.DEFAULT_DELAY,
-
-            path = resourceName,
-            extension = path.substring(path.lastIndexOf(".")),
-            nNewChannels = 0,
-            i = 0,
-            newChannel = null,
-            sentinel = null;
-
-        if (jb.sound.preferredFormat) {
-            if (extension) {
-                path = path.replace(extension, "");
-            }
-
-            path = path + "." + jb.sound.preferredFormat.ext;
-
-            if (!jb.sound.sounds[resourceName] ||
-                jb.sound.sounds[resourceName].length < nChannels) {
-                if (!jb.sound.sounds[resourceName]) {
-                    jb.sound.sounds[resourceName] = {
-                        channels:     [],
-                        playing:      [],
-                        lastPlayTime: [],
-                        minDelay:     minReplayDelay,
-                    };
-                }
-            
-                nNewChannels = numChannels - jb.sound.sounds[resourceName].channels.length;
-                for (i=0; i<nNewChannels; ++i) {
-                    newChannel = new Audio(path);
-                    sentinel = new function() { this.bFirstTime = true };
-                  
-                    newChannel.addEventListener('canplaythrough', function callback() {
-                        // HACKy "fix" for Chrome's 'canplaythrough' bug.
-                        if (sentinel.bFirstTime) {
-                            if (onLoadedCallback) {
-                                onLoadedCallback(jb.sound.sounds[resourceName], resourceName);
-                            }
-                            sentinel.bFirstTime = false;
-                        }
-                    }, false);
-                  
-                    if (onErrorCallback) {
-                        newChannel.addEventListener('onerror', function callback() {
-                            onErrorCallback(resourceName);
-                        }, false);
-                    }
-                
-                    newChannel.preload = "auto";
-                    newChannel.load();
-                    jb.sound.sounds[resourceName].channels.push(newChannel);
-                    jb.sound.sounds[resourceName].playing.push(false);
-                    jb.sound.sounds[resourceName].lastPlayTime.push(0);
-                }
-            }
-        }
-        else if (onLoadedCallback) {
-            onLoadedCallback(resourceName, "Error: no preferred format");
-        }
-
-        return jb.sound.sounds[resourceName];
-    },
-
-    // Procedural Sound ---------------------------------------------
-    makeSound: function(waveform, duration, volume, startFreq, endFreq) {
-        volume = volume || this.DEFAULT_VOL;
-        duration = duration || this.DEFAULT_DUR;
-        startFreq = startFreq || this.DEFAULT_FREQ;
-        endFreq = endFreq || startFreq;
-
-        return this.audioContext ? this.newSoundFromBuffer(this.getBuffer(waveform, startFreq, endFreq, volume, duration), duration) : this.dummySound;
-    },
-
-    waveFns: {
-        sine: function(f, t, s) {
-            var p = 2.0 * Math.PI * t * f;
-
-            return Math.sin(p);
-        },
-
-        saw: function(f, t, s) {
-            var p = t * f;
-            p = p - Math.floor(p);
-
-            return 2.0 * (p - 0.5);
-        },
-
-        square: function(f, t, s) {
-            var p = t * f;
-            p = p - Math.floor(p);
-
-            return p < 0.5 ? 1.0 : -1.0;
-        },
-
-        noisySine: function(f, t, s) {
-            return jb.sound.waveFns.sine(f, Math.abs(t + (Math.random() - 0.5) * jb.sound.noiseFactor / f), s);
-        },
-
-        noisySaw: function(f, t, s) {
-            return jb.sound.waveFns.saw(f, Math.abs(t + (Math.random() - 0.5) * jb.sound.noiseFactor / f), s);
-        },
-
-        noisySquare: function(f, t, s) {
-            return jb.sound.waveFns.square(f, Math.abs(t + (Math.random() - 0.5) * jb.sound.noiseFactor / f), s);
-        },
-
-        noise: function(f, t, s) {
-            return 2.0 * (0.5 - Math.random());
-        },
-    },
-
-    getBuffer: function(waveform, startFreq, endFreq, vol, dur) {
-        var nSamples = Math.round(dur * this.audioContext.sampleRate),
-            buffer = this.audioContext.createBuffer(this.channels, nSamples, this.audioContext.sampleRate),
-            t = 0,
-            freq = 0,
-            waveFn = this.waveFns[waveform] || this.waveFns["sine"],
-            iChannel = 0,
-            iSample = 0,
-            bPinkNoise = waveform.toUpperCase() === "PINKNOISE",
-            iPhase = 0,
-            iWave = 0,
-            maxAmp = 0,
-            numWaves = 0,
-            iSamplesPerWave = 0,
-            samples = null;
-
-        for (iChannel = 0; iChannel < this.channels; ++iChannel) {
-            samples = buffer.getChannelData(iChannel);
-
-            if (bPinkNoise) {
-                // Generate noise in the given frequency band by piecing together
-                // square waves of random frequencies from within the band.
-                numWaves = Math.min(Math.floor((endFreq - startFreq) * 0.33), jb.sound.WAVES_PER_NOISE);
-
-                for (iWave = 0; iWave <= numWaves; ++iWave) {
-                    freq = Math.round(startFreq + (endFreq - startFreq) * iWave / numWaves);
-                    iSamplesPerWave = Math.floor(this.audioContext.sampleRate / freq);
-                    iPhase = Math.floor(Math.random() * iSamplesPerWave);
-
-                    freq = Math.sqrt(freq);
-                    for (iSample = 0; iSample < nSamples; ++iSample) {
-                        if ((iSample + iPhase) % iSamplesPerWave < iSamplesPerWave / 2) {
-                            samples[iSample] += 1.0 / freq;
-                        }
-                        else {
-                            samples[iSample] += -1.0 / freq;
-                        }
-
-                        if (Math.abs(samples[iSample]) > maxAmp) {
-                            maxAmp = Math.abs(samples[iSample]);
-                        }
-                    }
-                }
-            }
-            else {
-                for (iSample = 0; iSample < nSamples; ++iSample) {
-                    t = iSample / this.audioContext.sampleRate;
-                    freq = startFreq + (endFreq - startFreq) * t / dur;
-                    samples[iSample] = waveFn(freq, t, iSample);
-
-                    if (Math.abs(samples[iSample]) > maxAmp) {
-                        maxAmp = Math.abs(samples[iSample]);
-                    }
-                }
-            }
-
-
-            // Normalize and apply volume.
-            for (iSample = 0; iSample < nSamples; ++iSample) {
-                samples[iSample] = samples[iSample] / maxAmp * Math.min(1.0, vol);
-            }
-
-            // Ramp up the opening samples.
-            samples[0] = 0.0;
-            samples[1] *= 0.333;
-            samples[2] *= 0.667;
-
-            // Ramp down the closing samples.
-            samples[nSamples - 1] = 0.0;
-            samples[nSamples - 2] *= 0.333;
-            samples[nSamples - 3] *= 0.667;
-        }
-
-        return buffer;
-    },
-
-    newSoundFromBuffer: function(buffer, duration) {
-        var self = this;
-
-        return {
-                duration: duration,
-                node: null,
-                play: function() {
-                    this.node = self.audioContext.createBufferSource();
-                    this.node.buffer = buffer;
-                    this.node.onEnded = function() {
-                        this.node.disconnect(jb.sound.audioContext.destination);
-                        this.node = null;
-                    }
-                    this.node.connect(jb.sound.audioContext.destination);
-                    this.node.start(0);
-                },
-                stop: function() {
-                    if (this.node) {
-                        this.node.stop();
-                    }
-                    this.node = null;
-                }
-            };
-    }
-};
-
-jb.sound.init();
-
 jb.program = {
     defaultRoutine: function() {
-        jb.setBackColor("black");
-        jb.setForeColor("red");
-        jb.print("No program defined!");
-        jb.setForeColor("gray");
+      jb.logToConsole("Started...");
     }
 };
 
