@@ -1,8 +1,9 @@
 jb.program = {
-  fontName: "VT323-Regular",
-  largeFontName: "UncialAntiqua-Regular",
   WIDTH: 1024,
   HEIGHT: 768,
+  PHOTO_LAYER_ROWS: 3,
+  fontName: "VT323-Regular",
+  largeFontName: "UncialAntiqua-Regular",
   fontMain: null,
   fontLarge: null,
   oldWidth: 0,
@@ -66,7 +67,7 @@ jb.program = {
     
     jb.listenForTap();
     
-    jb.resumeAfter("createBackground");
+    jb.resumeAfter("testBackground");
   },
   
   do_waitForTap: function() {
@@ -93,40 +94,92 @@ jb.program = {
     
     jb.end();
   },
+
+  testBackground: function() {
+    const backTexture = PIXI.RenderTexture.create(
+      this.pixiApp.screen.width,
+      this.pixiApp.screen.height,
+    );    
+
+    const gfx = new PIXI.Graphics();
+
+    gfx.beginFill(0x335577);
+    gfx.drawRect(0, 0, 300, 300);
+    gfx.endFill();
+    gfx.x = 150;
+    gfx.y = 150;
+
+    this.pixiApp.renderer.render(gfx, {backTexture});
+
+    this.backSprite = new PIXI.Sprite(backTexture);
+    this.backSprite.x = 150;
+    this.backSprite.y = 150;
+    this.pixiApp.stage.addChild(this.backSprite);
+
+    jb.end();
+  },
   
   createBackground: function() {
     if (this.backSprite) {
       this.pixiApp.stage.removeChild(this.backSprite);
       this.backSprite = null;
     }
-    
-    var canvas = document.createElement("canvas");
-    canvas.width = this.pixiApp.renderer.width;
-    canvas.height = this.pixiApp.renderer.height;
-    const ctxt = canvas.getContext('2d');
-    
-    // Clear canvas.
-    jb.clearCanvas(canvas, 'black');
 
+    const backTexture = PIXI.RenderTexture.create(
+      this.pixiApp.screen.width,
+      this.pixiApp.screen.height,
+    );    
+
+    // Clear background.
+    const rectGfx = new PIXI.Graphics();
+    rectGfx.x = 0;
+    rectGfx.y = 0;
+    rectGfx.width = this.pixiApp.renderer.width;
+    rectGfx.height = this.pixiApp.renderer.height;
+    rectGfx.beginFill(0x000000);
+    rectGfx.drawRect(0, 0, rectGfx.width, rectGfx.height);
+    rectGfx.closePath();
+    this.pixiApp.renderer.render(rectGfx, {backTexture});
+    
     // Draw depths.
-    jb.drawGradientRect(canvas, this.playField.left, this.playField.top, this.playField.width, this.playField.height, true, [{fraction: 0.0, color: "blue"}, {fraction: 0.167, color: "black"}, {fraction: 1.0, color: "black"}]);
+    const gradientGfx = new PIXI.Graphics();
+    gradientGfx.width = this.pixiApp.renderer.width;
+    gradientGfx.height = this.playField.height;
+    gradientGfx.x = 0;
+    gradientGfx.y = this.pixiApp.renderer.height - this.playField.height;
+    for (var i=0; i<this.playField.height; ++i) {
+      var gradColor = Math.floor(0x000088 * (1.0 - i / this.PHOTO_LAYER_ROWS * this.TILE_SIZE * this.gameScale));
+      gradColor = Math.max(i, 0x000000);
+      gradientGfx.lineStyle(gradColor);
+      gradientGfx.moveTo(0, i);
+      gradientGfx.lineTo(gradientGfx.width, i);
+    }
+    gradientGfx.closePath();
+    this.pixiApp.renderer.render(gradientGfx, {backTexture});
 
     // Draw sky.
-    ctxt.fillStyle = "#49d8f6"
-    ctxt.fillRect(0, 0, this.pixiApp.renderer.width, this.playField.top);
+    rectGfx.height = this.pixiApp.renderer.height - this.playField.height;
+    rectGfx.beginFill(0x49d8f6);
+    rectGfx.drawRect(0, 0, rectGfx.width, rectGfx.height);
+    this.pixiApp.renderer.render(rectGfx, {backTexture});
 
     // Draw seaweed.
     const seaweedSprite = this.getSprite("seaweed");
-    const seaweedImage = seaweedSprite.texture;
+    seaweedSprite.anchor.x = 0;
+    seaweedSprite.anchor.y = 0;
 
     var left = this.playField.left - this.TILE_SIZE * this.gameScale;
     var right = this.playField.left + this.playField.width;
     var top = this.playField.top;
     for (var iRow=0; iRow<this.gameSize.rows; ++iRow) {
       while (left > -this.TILE_SIZE * this.gameScale) {
-        ctxt.globalAlpha = 1.0 - iRow / this.gameSize.rows;
-        ctxt.drawImage(seaweedImage, left, top);
-        ctxt.drawImage(seaweedImage, right, top);
+        seaweedSprite.alpha = 1.0 - iRow / this.gameSize.rows;
+        seaweedSprite.x = left;
+        seaweedSprite.y = top;
+        this.pixiApp.renderer.render(seaweedSprite, {backTexture});
+
+        seaweedSprite.x = right;
+        this.pixiApp.renderer.render(seaweedSprite, {backTexture});
 
         left -= this.TILE_SIZE * this.gameScale;
         right += this.TILE_SIZE * this.gameScale;
@@ -134,18 +187,18 @@ jb.program = {
       }
     }
 
-    ctxt.globalAlpha = 1;
- 
-    this.backSprite = jb.pixiSpriteFromCanvas(canvas);
-    this.pixiApp.stage.addChild(this.backSprite);
+    seaweedSprite.alpha = 1;
 
     // Draw ship.
-    const ship = tihs.getSprite("ship");
+    const ship = this.getSprite("ship");
     ship.anchor.x = 0.5;
     ship.anchor.y = 1.0;
     ship.x = Math.floor(this.pixiApp.renderer.width / 2);
     ship.y = this.playField.top;
-    this.pixiApp.stage.addChild(ship);
+    this.pixiApp.renderer.render(ship, {backTexture});
+
+    this.backSprite = new PIXI.Sprite(backTexture);
+    this.pixiApp.stage.addChild(this.backSprite);
     
     jb.end();
   },
