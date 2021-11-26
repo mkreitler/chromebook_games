@@ -63,6 +63,18 @@ jb.program = {
     this.sprites["seaweed"] = new PIXI.Sprite(PIXI.Loader.shared.resources[this.imageList[0]].texture);
     // this.sprites["mine"] = new PIXI.Sprite(PIXI.Loader.shared.resources[this.imageList[1]].texture);
     this.sprites["ship"] = new PIXI.Sprite(PIXI.Loader.shared.resources[this.imageList[3]].texture);
+    
+    jb.listenForTap();
+    
+    jb.resumeAfter("createBackground");
+  },
+  
+  do_waitForTap: function() {
+    jb.while(!jb.tap.done);
+  },
+  
+  terminate: function() {
+    jb.end();
   },
 
   // Subroutines ==============================================================
@@ -78,12 +90,21 @@ jb.program = {
     this.playField.height = this.gameScale * this.TILE_SIZE * this.gameSize.rows;
     this.playField.left = Math.floor((this.pixiApp.renderer.width - this.playField.width) / 2);
     this.playField.top = this.pixiApp.renderer.height - this.playField.height;
-
+    
+    jb.end();
+  },
+  
+  createBackground: function() {
+    if (this.backSprite) {
+      this.pixiApp.stage.removeChild(this.backSprite);
+      this.backSprite = null;
+    }
+    
     var canvas = document.createElement("canvas");
     canvas.width = this.pixiApp.renderer.width;
     canvas.height = this.pixiApp.renderer.height;
     const ctxt = canvas.getContext('2d');
-
+    
     // Clear canvas.
     jb.clearCanvas(canvas, 'black');
 
@@ -95,10 +116,8 @@ jb.program = {
     ctxt.fillRect(0, 0, this.pixiApp.renderer.width, this.playField.top);
 
     // Draw seaweed.
-    const renderTexture = PIXI.RenderTexture.create({ width: this.TILE_WIDTH * this.gameScale, height: this.TILE_HEIGHT * this.gameScale });
     const seaweedSprite = this.getSprite("seaweed");
-    this.pixiApp.renderer.render(seaweedSprite, {renderTexture});
-    const seaweedImage = renderTexture.getDrawableSource();
+    const seaweedImage = seaweedSprite.texture;
 
     var left = this.playField.left - this.TILE_SIZE * this.gameScale;
     var right = this.playField.left + this.playField.width;
@@ -127,6 +146,8 @@ jb.program = {
     ship.x = Math.floor(this.pixiApp.renderer.width / 2);
     ship.y = this.playField.top;
     this.pixiApp.stage.addChild(ship);
+    
+    jb.end();
   },
 
   createHelpers: function() {
@@ -141,5 +162,7 @@ jb.program = {
 
       return sprite;
     }
+    
+    jb.end();
   }
 };
