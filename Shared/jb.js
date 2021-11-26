@@ -64,19 +64,6 @@ webVoice.init = function(fnOnStart, fnOnEnd, fnOnResult, fnOnError, bContinuous,
 })();
 
 
-// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ooooooooo.         .o.       ooooooooo.    .oooooo..o oooooooooooo ooooooooo.
-// `888   `Y88.      .888.      `888   `Y88. d8P'    `Y8 `888'     `8 `888   `Y88.
-//  888   .d88'     .8"888.      888   .d88' Y88bo.       888          888   .d88'
-//  888ooo88P'     .8' `888.     888ooo88P'   `"Y8888o.   888oooo8     888ooo88P'
-//  888           .88ooo8888.    888`88b.         `"Y88b  888    "     888`88b.
-//  888          .8'     `888.   888  `88b.  oo     .d8P  888       o  888  `88b.
-// o888o        o88o     o8888o o888o  o888o 8""88888P'  o888ooooood8 o888o  o888o
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-parser = {
-
-};
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ooooooooo.   oooooooooooo  .oooooo.o   .oooooo.   ooooo     ooo ooooooooo.     .oooooo.   oooooooooooo  .oooooo.o
 // `888   `Y88. `888'     `8 d8P'    `Y8  d8P'  `Y8b  `888'     `8' `888   `Y88.  d8P'  `Y8b  `888'     `8 d8P'    `Y8
@@ -1582,94 +1569,92 @@ jb.MathEx.Spline3D.prototype.getPoint = function(position) {
           z: this.zCubics[cubicNum].getValueAt(cubicPos)};
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ooo        ooooo oooooooooooo  .oooooo..o  .oooooo..o       .o.         .oooooo.    oooooooooooo  .oooooo..o
-// `88.       .888' `888'     `8 d8P'    `Y8 d8P'    `Y8      .888.       d8P'  `Y8b   `888'     `8 d8P'    `Y8
-//  888b     d'888   888         Y88bo.      Y88bo.          .8"888.     888            888         Y88bo.
-//  8 Y88. .P  888   888oooo8     `"Y8888o.   `"Y8888o.     .8' `888.    888            888oooo8     `"Y8888o.
-//  8  `888'   888   888    "         `"Y88b      `"Y88b   .88ooo8888.   888     ooooo  888    "         `"Y88b
-//  8    Y     888   888       o oo     .d8P oo     .d8P  .8'     `888.  `88.    .88'   888       o oo     .d8P
-// o8o        o888o o888ooooood8 8""88888P'  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8 8""88888P'
-// Messages ///////////////////////////////////////////////////////////////////////////////////////////////////
-jb.messages = {
-  registry: {},
-  queryRegistry: {},
-  args: [],
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// .oooooo..o                   o8o      .             oooo         .o8                                          .o8
+// d8P'    `Y8                   `"'    .o8             `888        "888                                         "888
+// Y88bo.      oooo oooo    ooo oooo  .o888oo  .ooooo.   888 .oo.    888oooo.   .ooooo.   .oooo.   oooo d8b  .oooo888
+// `"Y8888o.   `88. `88.  .8'  `888    888   d88' `"Y8  888P"Y88b   d88' `88b d88' `88b `P  )88b  `888""8P d88' `888
+//     `"Y88b   `88..]88..8'    888    888   888        888   888   888   888 888   888  .oP"888   888     888   888
+// oo     .d8P    `888'`888'     888    888 . 888   .o8  888   888   888   888 888   888 d8(  888   888     888   888
+// 8""88888P'      `8'  `8'     o888o   "888" `Y8bod8P' o888o o888o  `Y8bod8P' `Y8bod8P' `Y888""8o d888b    `Y8bod88P"
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+jb.switchboard = {
+  toAdd: [],
+  toRemove: [],
+  messageTable: {},
+};
 
-  listen: function(message, listener) {
-    var listeners = null;
+jb.switchboard.addListener = function(listener, message) {
+  jb.assert(listener, "No listener defined!");
+  jb.assert(message, "No message defined!");
+  
+  this.toAdd.push({listener: listener, message: message});
+};
 
-    if (!this.registry[message]) {
-      this.registry[message] = [];
+jb.switchboard.removeListener = function(listener, message) {
+  jb.assert(listener, "No listener defined!");
+  this.toRemove.push({listener: listener, message: message});
+};
+
+jb.switchboard.update = function() {
+  this.removePendingListeners();
+  this.addPendingListeners();
+};
+
+jb.switchboard.clear = function() {
+  jb.toAdd.length = 0;
+  jb.toRemove.length = 0;
+  jb.messageTable = {};
+};
+
+jb.switchboard.addPendingListeners = function() {
+  while (this.toAdd.length > 0) {
+    var listener = this.toAdd[0][listener];
+    var message = this.toAdd[0][message].toLowerCase();
+    this.toAdd.shift();
+    
+    if (!this.messageTable[message]) {
+      this.messageTable[message] = [];
     }
-
-    listeners = this.registry[message];
-
+    
+    var listeners = this.messageTable[message];
     if (listeners.indexOf(listener) < 0) {
       listeners.push(listener);
     }
-  },
+  }
+};
 
-  answer: function(message, answerer) {
-    var answerers = null;
-
-    if (!this.queryRegistry[message]) {
-      this.queryRegistry[message] = [];
-    }
-
-    answerers = this.queryRegistry[message];
-
-    if (answerers.indexOf(answerer) < 0) {
-      answerers.push(answerer);
-    }
-  },
-
-  unlisten: function(message, listener) {
-    if (this.registry[message] && this.registry[message].indexOf(listener) >= 0) {
-      jb.removeFromArray(this.registry[message], listener, true);
-    }
-  },
-
-  unanswer: function(message, answerer) {
-    if (this.queryRegistry[message] && this.queryRegistry[message].indexOf(answerer) >= 0) {
-      jb.removeFromArray(this.queryRegistry[message], answerer, true);
-    }
-  },
-
-  query: function(message, querier) {
-    var i = 0,
-        answerer = null;
-
-    if (querier && (typeof querier[message] === "function") && this.queryRegistry[message]) {
-      for (i=0; i<this.queryRegistry[message].length; ++i) {
-        // Call the querier's function, sending the current listener as the argument.
-        answerer = this.queryRegistry[message][i];
-        querier[message].call(querier, answerer);
+jb.switchboard.removePendingListeners = function() {
+  while (this.toRemove.length > 0) {
+    var listener = this.toRemove[0][listener];
+    var message = this.toRemove[0][message].toLowerCase();
+    this.toRemove.shift();
+    
+    if (message) {
+      var listeners = this.messageTable[message];
+      
+      if (listeners && listeners.indexOf(listener) >= 0) {
+        jb.removeFromArray(listeners, listener);
       }
     }
-  },
-
-  send: function(message) {
-    var i = 0,
-        listener = null;
-
-    if (this.registry[message]) {
-      this.args.length = 0;
-
-      for (i=1; i<arguments.length; ++i) {
-        this.args.push(arguments[i]);
-      }
-
-      for (i=0; i<this.registry[message].length; ++i) {
-        listener = this.registry[message][i];
-
-        if (listener) {
-          listener[message].apply(listener, this.args);
+    else {
+      for ([message, listeners] of Object.entries(this.messageTable)) {
+        if (listeners.indexOf(listener) >= 0) {
+          jb.removeFromArray(listeners, listener);
         }
       }
     }
   }
-}
+};
+
+jb.switchboard.broadcast = function(message, arg) {
+  var listeners = this.messageTable[message.toLowerCase()];
+  if (listeners) {
+    for (var listener in listeners) {
+      listeners[message](arg);
+    }
+  }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // ooooooooooooo oooooo   oooo ooooooooo.   oooooooooooo  .oooooo.o
@@ -1977,6 +1962,7 @@ jb.loop = function() {
     jb.updateTimers();
     jb.stateMachines.update();
     jb.transitions.update();
+    jb.switchboard.update();
 
     if (jb.bInterrupt) {
         jb.nextInstruction();
