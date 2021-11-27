@@ -2949,10 +2949,7 @@ jb.sound.init();
 
 jb.program = {
     defaultRoutine: function() {
-        jb.setBackColor("black");
-        jb.setForeColor("red");
-        jb.print("No program defined!");
-        jb.setForeColor("gray");
+      jb.logToConsole("Fred ate bread!");
     }
 };
 

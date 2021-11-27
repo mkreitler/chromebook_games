@@ -1,221 +1,252 @@
-jb.program = {
-  WIDTH: 1024,
-  HEIGHT: 768,
-  PHOTO_LAYER_ROWS: 3,
-  fontName: "VT323-Regular",
-  largeFontName: "UncialAntiqua-Regular",
-  fontMain: null,
-  fontLarge: null,
-  oldWidth: 0,
-  oldHeight: 0,
-  imageList: ["art/bathy.png", "art/mine_black.png", "art/ship.png", "art/seaweed.png"],
-  imagesLoaded: 0,
-  allImagesLoaded: false,
-  sprites: {},
-  pixiApp: null,
-  gameSize: {rows: 20, cols: 11},
-  gameScale: 1,
-  TILE_SIZE: 32,
-  playField: {top: 0, left: 0, width: 0, height: 0},
-  viewport: {top: 0, left: 0, width: 0, height: 0},
-  backSprite: null,
-  
-  start: function() {
-    // Create a Pixi Application
-    const app = new PIXI.Application({
-        antialias: false,   // default: false
-        resolution: 1       // default: 1
-      }
-    );
+const BathGame = function() {
+  this.IMAGE_PATH = "art";
+  this.IMAGE_TYPE = "png";
+  this.TILE_SIZE = 32;
+  this.PHOTO_LAYER_ROWS = 4;
+  this.COLOR_WATER = 0x0000FF;
+  this.COLOR_SKY = 0x49c0ff;
+  this.SEAWEED_FADE_POWER = 0.4;
+  this.WATERLINE = 8;
 
-    app.renderer.view.style.position = "absolute";
-    app.renderer.view.style.display = "block";
-    app.renderer.autoDensity = true;
-    app.resizeTo = window;
+  this.gameSize = {rows: 20, cols: 11};
+  this.gameScale = 1;
+  this.playField = {top: 0, left: 0, width: 0, height: 0};
+  this.backTexture = null;
+  this.backSprite = null;
+  this.imageInfo = [
+    {name: "bathy", url: null, onComplete: this.onImageLoaded},
+    {name: "mine_black", url: null, onComplete: this.onImageLoaded},
+    {name: "ship", url: null, onComplete: this.onImageLoaded},
+    {name: "seaweed", url: null, onComplete: this.onImageLoaded},
+    {name: "lights", url: null, onComplete: this.onImageLoaded},
+    {name: "chest", url: null, onComplete: this.onImageLoaded},
+  ];
+  this.imagesLoaded = 0;
+  this.sprites = {};
+  this.level = 0;
+  this.numLevels = 20;
+  this.minMines = Math.round(this.gameSize.rows * this.gameSize.cols * 0.2);
+  this.maxMines = Math.round(this.gameSize.rows * this.gameSize.cols * 0.8);
+  this.mines = [];
+  this.player = null;
+  this.lights = null;
 
-    this.pixiApp = app;
-    
-    // Add the canvas that Pixi automatically created for you to the HTML document
-    document.body.appendChild(app.view);
-    
-    jb.setPixi(this.pixiApp);
+  this.sprites = {};
+  this.pixiApp = this.initPIXI();
+  this.loadImages();
+};
 
-    jb.resumeAfter("createHelpers");
-  },
+BathGame.prototype.initPIXI = function() {
+  // Create a Pixi Application
+  const app = new PIXI.Application({
+    antialias: false,   // default: false
+    resolution: 1       // default: 1
+  });
 
-  initView: function() {
-    jb.resumeAfter('computeViewportSize');
-  },
+  app.renderer.view.style.position = "absolute";
+  app.renderer.view.style.display = "block";
+  app.renderer.autoDensity = true;
+  app.resizeTo = window;
 
-  loadResources: function() {
-    PIXI.Loader.shared
-    .add(this.imageList)
-    .load(function() {
-      this.allImagesLoaded = true;
-    }.bind(this));
-  },
-  
-  do_waitForResources: function() {
-    jb.while(!this.allImagesLoaded);
-  },
-  
-  setup: function() {
-    this.sprites["bathy"] = new PIXI.Sprite(PIXI.Loader.shared.resources[this.imageList[0]].texture);
-    this.sprites["seaweed"] = new PIXI.Sprite(PIXI.Loader.shared.resources[this.imageList[0]].texture);
-    // this.sprites["mine"] = new PIXI.Sprite(PIXI.Loader.shared.resources[this.imageList[1]].texture);
-    this.sprites["ship"] = new PIXI.Sprite(PIXI.Loader.shared.resources[this.imageList[3]].texture);
-    
-    jb.listenForTap();
-    
-    jb.resumeAfter("testBackground");
-  },
-  
-  do_waitForTap: function() {
-    jb.while(!jb.tap.done);
-  },
-  
-  terminate: function() {
-    jb.end();
-  },
+  document.body.appendChild(app.view);
 
-  // Subroutines ==============================================================
-  computeViewportSize: function() {
-    // The game wants a 16x9 portrait playField.
-    const pixPerRow = this.pixiApp.renderer.height / this.gameSize.rows;
-    const pixPerCol = this.pixiApp.renderer.width / this.gameSize.cols;
-    const pixSize = Math.min(pixPerRow, pixPerCol);
-    this.gameScale = Math.floor(pixSize / this.TILE_SIZE);
-    this.gameScale = Math.max(1, this.gameScale);
+  return app;
+};
 
-    this.playField.width = this.gameScale * this.TILE_SIZE * this.gameSize.cols;
-    this.playField.height = this.gameScale * this.TILE_SIZE * this.gameSize.rows;
-    this.playField.left = Math.floor((this.pixiApp.renderer.width - this.playField.width) / 2);
-    this.playField.top = this.pixiApp.renderer.height - this.playField.height;
-    
-    jb.end();
-  },
+BathGame.prototype.loadImages = function() {
+  this.imageInfo.forEach((info) => {
+    info.url = this.IMAGE_PATH + "/" + info.name + "." + this.IMAGE_TYPE;
+  });
 
-  testBackground: function() {
-    const backTexture = PIXI.RenderTexture.create(
-      this.pixiApp.screen.width,
-      this.pixiApp.screen.height,
-    );    
+  PIXI.Loader.shared
+  .add(this.imageInfo)
+  .load(this.onImagesLoaded);
+};
 
-    const gfx = new PIXI.Graphics();
+BathGame.prototype.onImagesLoaded = function() {
+  // TODO: timeout if image load fails?
+  game.setup();
+};
 
-    gfx.beginFill(0x335577);
-    gfx.drawRect(0, 0, 300, 300);
-    gfx.endFill();
-    gfx.x = 150;
-    gfx.y = 150;
+BathGame.prototype.setup = function() {
+  this.imageInfo.forEach((info) => {
+    this.sprites[info.name] = new PIXI.Sprite(PIXI.Loader.shared.resources[info.name].texture);
+  });
 
-    this.pixiApp.renderer.render(gfx, {backTexture});
+  this.computePlayFieldSize();
+  this.createBackground();
+  this.createMines();
+  this.createPlayer();
+  this.level = 1;
+  this.startLevel();
+  this.pixiApp.ticker.add((dt) => this.update(dt));
+};
 
-    this.backSprite = new PIXI.Sprite(backTexture);
-    this.backSprite.x = 150;
-    this.backSprite.y = 150;
-    this.pixiApp.stage.addChild(this.backSprite);
-
-    jb.end();
-  },
-  
-  createBackground: function() {
-    if (this.backSprite) {
-      this.pixiApp.stage.removeChild(this.backSprite);
-      this.backSprite = null;
-    }
-
-    const backTexture = PIXI.RenderTexture.create(
-      this.pixiApp.screen.width,
-      this.pixiApp.screen.height,
-    );    
-
-    // Clear background.
-    const rectGfx = new PIXI.Graphics();
-    rectGfx.x = 0;
-    rectGfx.y = 0;
-    rectGfx.width = this.pixiApp.renderer.width;
-    rectGfx.height = this.pixiApp.renderer.height;
-    rectGfx.beginFill(0x000000);
-    rectGfx.drawRect(0, 0, rectGfx.width, rectGfx.height);
-    rectGfx.closePath();
-    this.pixiApp.renderer.render(rectGfx, {backTexture});
-    
-    // Draw depths.
-    const gradientGfx = new PIXI.Graphics();
-    gradientGfx.width = this.pixiApp.renderer.width;
-    gradientGfx.height = this.playField.height;
-    gradientGfx.x = 0;
-    gradientGfx.y = this.pixiApp.renderer.height - this.playField.height;
-    for (var i=0; i<this.playField.height; ++i) {
-      var gradColor = Math.floor(0x000088 * (1.0 - i / this.PHOTO_LAYER_ROWS * this.TILE_SIZE * this.gameScale));
-      gradColor = Math.max(i, 0x000000);
-      gradientGfx.lineStyle(gradColor);
-      gradientGfx.moveTo(0, i);
-      gradientGfx.lineTo(gradientGfx.width, i);
-    }
-    gradientGfx.closePath();
-    this.pixiApp.renderer.render(gradientGfx, {backTexture});
-
-    // Draw sky.
-    rectGfx.height = this.pixiApp.renderer.height - this.playField.height;
-    rectGfx.beginFill(0x49d8f6);
-    rectGfx.drawRect(0, 0, rectGfx.width, rectGfx.height);
-    this.pixiApp.renderer.render(rectGfx, {backTexture});
-
-    // Draw seaweed.
-    const seaweedSprite = this.getSprite("seaweed");
-    seaweedSprite.anchor.x = 0;
-    seaweedSprite.anchor.y = 0;
-
-    var left = this.playField.left - this.TILE_SIZE * this.gameScale;
-    var right = this.playField.left + this.playField.width;
-    var top = this.playField.top;
-    for (var iRow=0; iRow<this.gameSize.rows; ++iRow) {
-      while (left > -this.TILE_SIZE * this.gameScale) {
-        seaweedSprite.alpha = 1.0 - iRow / this.gameSize.rows;
-        seaweedSprite.x = left;
-        seaweedSprite.y = top;
-        this.pixiApp.renderer.render(seaweedSprite, {backTexture});
-
-        seaweedSprite.x = right;
-        this.pixiApp.renderer.render(seaweedSprite, {backTexture});
-
-        left -= this.TILE_SIZE * this.gameScale;
-        right += this.TILE_SIZE * this.gameScale;
-        top += this.TILE_SIZE * this.gameScale;
-      }
-    }
-
-    seaweedSprite.alpha = 1;
-
-    // Draw ship.
-    const ship = this.getSprite("ship");
-    ship.anchor.x = 0.5;
-    ship.anchor.y = 1.0;
-    ship.x = Math.floor(this.pixiApp.renderer.width / 2);
-    ship.y = this.playField.top;
-    this.pixiApp.renderer.render(ship, {backTexture});
-
-    this.backSprite = new PIXI.Sprite(backTexture);
-    this.pixiApp.stage.addChild(this.backSprite);
-    
-    jb.end();
-  },
-
-  createHelpers: function() {
-    jb.program.getSprite = function(spriteName) {
-      var sprite = null;
-
-      if (this.sprites[spriteName]) {
-        sprite = this.sprites[spriteName];
-        sprite.width = this.TILE_SIZE * this.gameScale;
-        sprite.height = this.TILE_SIZE * this.gameScale;
-      }
-
-      return sprite;
-    }
-    
-    jb.end();
+BathGame.prototype.createMines = function() {
+  for (var i=0; i<this.maxMines; ++i) {
+    this.mines.push(new PIXI.Sprite(this.getSprite("mine_black").texture));
   }
 };
+
+BathGame.prototype.createPlayer = function() {
+  this.player = new PIXI.Sprite(this.getSprite("bathy").texture);
+  this.lights = new PIXI.Sprite(this.getSprite("lights").texture);
+  this.player.addChild(this.lights);
+};
+
+BathGame.prototype.startLevel = function() {
+  this.computePath();
+
+  this.resetPlayer();
+};
+
+BathGame.prototype.computePath = function() {
+
+};
+
+BathGame.prototype.resetPlayer = function() {
+  this.player.alpha = 1;
+  this.lights.alpha = 1;
+  this.player.x = this.playField.left + Math.floor(this.gameSize.cols / 2) * this.TILE_SIZE * this.gameScale;
+  this.player.y = this.playField.top;
+
+  this.pixiApp.stage.addChild(this.player);
+};
+
+BathGame.prototype.getMineCount = function() {
+  const effectiveLevel = Math.min(this.level, this.numLevels);
+  const p = (effectiveLevel - 1) / (this.numLevels - 1);
+  return Math.round(this.minMines + (this.maxMines - this.minMines) * p);
+};
+
+BathGame.prototype.update = function(dt) {
+};
+
+BathGame.prototype.width = function() {
+  return this.pixiApp ? this.pixiApp.screen.width : window.innerWidth;
+};
+
+BathGame.prototype.height = function() {
+  return this.pixiApp ? this.pixiApp.screen.height : window.innerHeight;
+};
+
+BathGame.prototype.getSprite = function(name) {
+  var sprite = this.sprites[name];
+
+  if (sprite) {
+    if (sprite.width === sprite.texture.width) {
+      sprite.width *= this.gameScale;
+    }
+
+    if (sprite.height === sprite.texture.height) {
+      sprite.height *= this.gameScale;
+    }
+  }
+
+  return sprite;
+}
+
+BathGame.prototype.computePlayFieldSize = function() {
+  // The game wants a 16x9 portrait playField.
+  const pixPerRow = this.pixiApp.renderer.height / this.gameSize.rows;
+  const pixPerCol = this.pixiApp.renderer.width / this.gameSize.cols;
+  const pixSize = Math.min(pixPerRow, pixPerCol);
+  this.gameScale = Math.floor(pixSize / this.TILE_SIZE);
+  this.gameScale = Math.max(1, this.gameScale);
+
+  this.playField.width = this.gameScale * this.TILE_SIZE * this.gameSize.cols;
+  this.playField.height = this.gameScale * this.TILE_SIZE * this.gameSize.rows;
+  this.playField.left = Math.floor((this.pixiApp.renderer.width - this.playField.width) / 2);
+  this.playField.top = this.pixiApp.renderer.height - this.playField.height;
+};
+  
+BathGame.prototype.createBackground = function() {
+  if (this.backSprite) {
+    this.pixiApp.stage.removeChild(this.backSprite);
+    this.backSprite = null;
+  }
+
+  this.backTexture = PIXI.RenderTexture.create(
+    this.pixiApp.screen.width,
+    this.pixiApp.screen.height,
+  );    
+  this.backSprite = new PIXI.Sprite(this.backTexture);
+
+  const backContainer = new PIXI.Container();
+
+  // Clear background.
+  const rectGfx = new PIXI.Graphics();
+  rectGfx.x = 0;
+  rectGfx.y = 0;
+  rectGfx.beginFill(0x000000);
+  rectGfx.drawRect(0, 0, this.pixiApp.screen.width, this.pixiApp.screen.height);
+  backContainer.addChild(rectGfx);
+
+  // Draw sky.
+  const skyGfx = new PIXI.Graphics();
+  var y0 = this.pixiApp.screen.height - this.playField.height;
+  const dy = y0;
+  for (var i=y0; i>=0; --i) {
+    const fadeFactor = Math.log(i + 1) / Math.log(dy + 1);
+    skyGfx.lineStyle(1, this.COLOR_SKY, fadeFactor);
+    skyGfx.moveTo(0, i);
+    skyGfx.lineTo(this.pixiApp.screen.width + this.playField.width, i);
+  }
+  backContainer.addChild(skyGfx);
+  
+  // Draw ship.
+  const ship = this.getSprite("ship");
+  ship.anchor.x = 0.5;
+  ship.anchor.y = 1.0;
+  ship.x = Math.floor(this.pixiApp.renderer.width / 2);
+  ship.y = this.playField.top + this.WATERLINE * this.gameScale;
+  backContainer.addChild(ship);
+
+  // Draw depths.
+  const gradientGfx = new PIXI.Graphics();
+  y0 = this.pixiApp.screen.height - this.playField.height;
+  const numLines = this.PHOTO_LAYER_ROWS * this.TILE_SIZE * this.gameScale;
+
+  for (var i=0; i<numLines; ++i) {
+    var gradColor = Math.floor(this.COLOR_WATER * (1.0 - i / numLines));
+    gradColor = Math.max(gradColor, 0x000000);
+    gradientGfx.lineStyle(1, gradColor, 0.67);
+    // gradientGfx.moveTo(0, y0 + i);
+    // gradientGfx.lineTo(this.pixiApp.screen.width + this.playField.width, y0 + i);
+    gradientGfx.moveTo(this.playField.left, y0 + i);
+    gradientGfx.lineTo(this.playField.left + this.playField.width, y0 + i);
+  }
+  backContainer.addChild(gradientGfx);
+
+  // Draw seaweed.
+  const sourceSprite = this.getSprite("seaweed");
+
+  var top = this.playField.top;
+  for (var iRow=0; iRow<this.gameSize.rows; ++iRow) {
+    var left = this.playField.left - this.TILE_SIZE * this.gameScale;
+    var right = this.playField.left + this.playField.width;
+    while (left > -this.TILE_SIZE * this.gameScale) {
+      var cloneSprite = new PIXI.Sprite(sourceSprite.texture);
+      cloneSprite.alpha = 1.0 - Math.log(iRow + 1) * this.SEAWEED_FADE_POWER;
+      cloneSprite.x = left;
+      cloneSprite.y = top;
+      backContainer.addChild(cloneSprite);
+
+      cloneSprite = new PIXI.Sprite(sourceSprite.texture);
+      cloneSprite.alpha = 1.0 - Math.log(iRow + 1) * this.SEAWEED_FADE_POWER;
+      cloneSprite.x = right;
+      cloneSprite.y = top;
+      backContainer.addChild(cloneSprite);
+
+      left -= this.TILE_SIZE * this.gameScale;
+      right += this.TILE_SIZE * this.gameScale;
+    }
+    top += this.TILE_SIZE * this.gameScale;
+  }
+
+  this.pixiApp.renderer.render(backContainer, this.backTexture);
+  this.pixiApp.stage.addChild(this.backSprite);
+};
+
+// ============================================================================
+const game = new BathGame();
