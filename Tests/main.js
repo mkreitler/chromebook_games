@@ -7,6 +7,9 @@ const BathGame = function() {
   this.COLOR_SKY = 0x49c0ff;
   this.SEAWEED_FADE_POWER = 0.4;
   this.WATERLINE = 8;
+  this.CHEST_ALPHA = 0.33;
+  this.MIN_MINE_ROW = 2;
+  this.MOVE_VERTICAL_BIAS = 1; // The higher this value, the more likely the path to the chest will be straight up/down
 
   this.gameSize = {rows: 20, cols: 11};
   this.gameScale = 1;
@@ -20,6 +23,7 @@ const BathGame = function() {
     {name: "seaweed", url: null, onComplete: this.onImageLoaded},
     {name: "lights", url: null, onComplete: this.onImageLoaded},
     {name: "chest", url: null, onComplete: this.onImageLoaded},
+    {name: "bubble", url: null, onComplete: this.onImageLoaded},
   ];
   this.imagesLoaded = 0;
   this.sprites = {};
@@ -28,8 +32,11 @@ const BathGame = function() {
   this.minMines = Math.round(this.gameSize.rows * this.gameSize.cols * 0.2);
   this.maxMines = Math.round(this.gameSize.rows * this.gameSize.cols * 0.8);
   this.mines = [];
+  this.mineLocations = [];
   this.player = null;
   this.lights = null;
+  this.chest = null;
+  this.bubbles = null;
 
   this.sprites = {};
   this.pixiApp = this.initPIXI();
@@ -75,8 +82,11 @@ BathGame.prototype.setup = function() {
 
   this.computePlayFieldSize();
   this.createBackground();
+
+  this.createChest();
   this.createMines();
   this.createPlayer();
+
   this.level = 1;
   this.startLevel();
   this.pixiApp.ticker.add((dt) => this.update(dt));
@@ -94,14 +104,23 @@ BathGame.prototype.createPlayer = function() {
   this.player.addChild(this.lights);
 };
 
-BathGame.prototype.startLevel = function() {
-  this.computePath();
-
-  this.resetPlayer();
+BathGame.prototype.createChest = function() {
+  this.chest = new PIXI.Sprite(this.getSprite("chest").texture);
 };
 
-BathGame.prototype.computePath = function() {
+BathGame.prototype.startLevel = function() {
+  this.placeChest();
+  this.resetPlayer();
+  this.placeMines();
+};
 
+BathGame.prototype.placeChest = function() {
+  const chestColumn = Math.floor(Math.random() * this.gameSize.cols);
+  this.chest.y = this.yFromRow(this.gameSize.rows - 1);
+  this.chest.x = this.xFromColumn(chestColumn);
+  this.chest.alpha = this.CHEST_ALPHA;
+
+  this.pixiApp.stage.addChild(this.chest);
 };
 
 BathGame.prototype.resetPlayer = function() {
@@ -111,6 +130,86 @@ BathGame.prototype.resetPlayer = function() {
   this.player.y = this.playField.top;
 
   this.pixiApp.stage.addChild(this.player);
+};
+
+BathGame.prototype.placeMines = function() {
+  this.mineLocations.length = 0;
+
+  // First, build a list of all possible positions.
+  const allPositions = []
+  for (var iRow=this.MIN_MINE_ROW; iRow<this.gameSize.rows; ++iRow) {
+    for (var iCol=0; iCol<this.gameSize.cols; ++iCol) {
+      allPositions.push(iRow * this.gameSize.cols + iCol);
+    }
+  }
+
+  // Next, build a path from the chest back up to the surface.
+  var currentRow = this.gameSize.rows - 1;
+  var currentCol = this.columnFromX(this.chest.x);
+
+  while (currentRow > this.MIN_MINE_ROW) {
+    const oldRow = currentRow;
+    const oldCol = currentCol;
+
+    switch (Math.floor(Math.random() * (this.MOVE_VERTICAL_BIAS + 2))) {
+      case 0:
+          // Move left.
+          currentCol -= 1;
+          currentCol = Math.max(0, currentCol);
+        break;
+
+      case 1:
+          // Move right.
+          currentCol += 1;
+          currentCol = Math.min(this.gameSize.cols - 1, currentCol);
+        break;
+
+      default:
+        // Move up.
+        currentRow -= 1;
+    }
+
+    if (currentRow != oldRow || currentCol != oldCol) {
+      const posVal = currentRow * this.gameSize.cols + currentCol;
+      const valIndex = allPositions.indexOf(posVal);
+      jem.Utils.removeElementAtIndex(allPositions, valIndex);
+    }
+  }
+
+  // Finally, place mines using the remaining positions.
+  var numMines = this.getMineCount();
+  numMines = Math.min(numMines, allPositions.length);
+
+  var mineIndex = 0;
+  while (numMines > 0) {
+    const posIndex = Math.floor(Math.random() * allPositions.length);
+    const row = Math.floor(allPositions[posIndex] / this.gameSize.cols);
+    const col = allPositions[posIndex] - row * this.gameSize.cols;
+    const mine = this.mines[mineIndex];
+
+    mine.x = this.xFromColumn(col);
+    mine.y = this.yFromRow(row);
+    this.pixiApp.stage.addChild(mine);
+
+    numMines -= 1;
+    mineIndex += 1;
+  }
+};
+
+BathGame.prototype.rowFromY = function(y) {
+  return Math.floor((y - this.playField.top) / (this.TILE_SIZE * this.gameScale));
+};
+
+BathGame.prototype.yFromRow = function(row) {
+  return this.playField.top + this.TILE_SIZE * this.gameScale * row;
+};
+
+BathGame.prototype.columnFromX = function(x) {
+  return Math.floor((x - this.playField.left) / (this.TILE_SIZE * this.gameScale));
+};
+
+BathGame.prototype.xFromColumn = function(col) {
+  return this.playField.left + this.TILE_SIZE * this.gameScale * col;
 };
 
 BathGame.prototype.getMineCount = function() {
