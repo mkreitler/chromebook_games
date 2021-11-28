@@ -1,4 +1,4 @@
-KeyHandler = {
+JEM.KeyHandler = {
     normal: {last: null, down:{}},
     special: {last: null, down: {}},
     lastCode: -1,
@@ -25,7 +25,7 @@ KeyHandler = {
         }
     },
 
-    removeListener: function(this,listeners, listener) {
+    removeListener: function(listener) {
         jem.Utils.removeElement(listener, true);
     },
 
@@ -65,22 +65,22 @@ KeyHandler = {
             this.input += this.got;
         }
 
-        listeners.forEach((listener) => {
+        for (var listener of this.listeners) {
             if (listener["onKeyPress"]) {
                 if (listener["onKeyPress"](this.got)) {
                     break;
                 }
             }
-        });
+        }
     
         if (this.line) {
-            listeners.forEach((listener) => {
+            for (var listener of this.listeners) {
                 if (listener["onNewLine"]) {
-                    if (listener["onNewLine"](this.line)) {
+                    if (listener["onNewLine"](this.got)) {
                         break;
                     }
                 }
-            });
+            }
         }
     },
     
@@ -139,13 +139,13 @@ KeyHandler = {
             this.special.last = "";
         }
 
-        listeners.forEach((listener) => {
+        for (var listener of listeners) {
             if (listener["onKeyDown"]) {
                 if (listener["onKeyDown"](this.got)) {
                     break;
                 }
             }
-        });
+        }
     
         return retVal;
     },
@@ -185,13 +185,13 @@ KeyHandler = {
             this.normal.down[lookupCode] = false;
         }
 
-        listeners.forEach((listener) => {
+        for (var listener of listener) {
             if (listener["onKeyUp"]) {
                 if (listener["onKeyUp"](this.got)) {
                     break;
                 }
             }
-        });
+        }
     },
     
     codes: {
@@ -251,6 +251,6 @@ KeyHandler = {
     },
 };
 
-document.addEventListener("keydown", keyHandler.onDown, true);
-document.addEventListener("keyup", keyHandler.onUp, true);
-document.addEventListener("keypress", keyHandler.onPress, true);
+document.addEventListener("keydown", JEM.KeyHandler.onDown, true);
+document.addEventListener("keyup", JEM.KeyHandler.onUp, true);
+document.addEventListener("keypress", JEM.KeyHandler.onPress, true);

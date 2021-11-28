@@ -1,41 +1,41 @@
-jem.State = function(owner, onEnter, onUpdate, onExit) {
+JEM.State = function(owner, onEnter, onUpdate, onExit) {
     this.onEnter = onEnter ? onEnter.bind(owner) : function() {};
     this.onUpdate = onUpdate ? onUpdate.bind(owner) : function() {};
     this.onExit = onExit ? onExit.bind(owner) : function() {};
 };
 
-jem.State.prototype.enter = function() {
+JEM.State.prototype.enter = function() {
     this.onEnter();
 };
 
-jem.State.prototype.update = function(dt) {
+JEM.State.prototype.update = function(dt) {
     this.onUpdate(dt);
 };
 
-jem.State.prototype.exit = function() {
+JEM.State.prototype.exit = function() {
     this.onExit();
 };
 
-///////////////////////////////////////////////////////////////////////////////
+// ============================================================================
 
-jem.FSM = function(owner) {
+JEM.FSM = function(owner) {
     this.owner = owner;
     this.currentState = null;
     this.states = {};
     this.transitions = [];
 };
 
-jem.FSM.prototype.createState = function(name, onEnter, onUpdate, onExit) {
+JEM.FSM.prototype.createState = function(name, onEnter, onUpdate, onExit) {
     const safeName = name.toLowerCase();
     jem.assert(!this.states[safeName], "State already exists!");
 
-    const newState = new jem.State(this.owner, onEnter, onUpdate, onExit);
+    const newState = new JEM.State(this.owner, onEnter, onUpdate, onExit);
     this.states[safeName] = newState;
 
     return newState;
 };
 
-jem.FSM.prototype.setState = function(stateName) {
+JEM.FSM.prototype.setState = function(stateName) {
     const safeName = stateName.toLowerCase();
     const newState = this.states[safeName];
 
@@ -44,18 +44,18 @@ jem.FSM.prototype.setState = function(stateName) {
     this.transitions.push(newState);
 };
 
-jem.FSM.prototype.onRemoved = function() {
+JEM.FSM.prototype.onRemoved = function() {
   this.destroy();
 };
 
-jem.FSM.prototype.destroy = function() {
+JEM.FSM.prototype.destroy = function() {
   for (var stateName in this.states) {
     const state = this.states[stateName];
     state.destroy();
   }
 };
 
-jem.FSM.prototype.update = function(dt) {
+JEM.FSM.prototype.update = function(dt) {
     while (this.transitions.length > 0) {
         const newState = this.transitions[0];
 
@@ -77,24 +77,24 @@ jem.FSM.prototype.update = function(dt) {
     }
 };
 
-///////////////////////////////////////////////////////////////////////////////
+// ============================================================================
 
-jem.FsmManager = function() {
-  this.fsms = new jem.UpdateQueue(true);
-  jem.addTicker(this);
+JEM.FsmManager = function() {
+  this.fsms = new JEM.UpdateQueue(true);
+  jem.addTicker(this.fsms);
 };
 
-jem.FsmManager.prototype.createFsm = function(owner) {
-  const newFsm = new jem.FSM(owner);
+JEM.FsmManager.prototype.createFsm = function(owner) {
+  const newFsm = new JEM.FSM(owner);
   this.fsms.add(newFsm);
   
   return newFsm;
 };
 
-jem.FsmManager.prototype.destroyFsm = function(fsm) {
+JEM.FsmManager.prototype.destroyFsm = function(fsm) {
   this.fsms.remove(fsm);
 };
 
-jem.FsmManager.prototype.clear = function() {
+JEM.FsmManager.prototype.clear = function() {
   this.fsms.clear();
 };

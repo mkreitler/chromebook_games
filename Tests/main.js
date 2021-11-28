@@ -39,6 +39,9 @@ const BathGame = function() {
   this.bubbles = null;
 
   this.sprites = {};
+};
+
+BathGame.prototype.run = function() {
   jem.pixi = this.initPIXI();
   this.loadImages();
 };
@@ -324,4 +327,6 @@ BathGame.prototype.createBackground = function() {
 };
 
 // ============================================================================
+// Create the engine and the game.
+const jem = JEM.create();
 const game = new BathGame();

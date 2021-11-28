@@ -8,13 +8,24 @@ const JEM = function() {
   this.switchboard = null;
   this.game = null;
 
-  this.init();
+  return this;
 };
 
-JEM.prototype.init = function() {
-  this.FSM = new FsmManager();
-  this.switchboard = new Switchboard();
-  this.pixi = initPixi();
+JEM.create = function() {
+    return new JEM();
+};
+
+JEM.prototype.start = function(game) {
+  this.assert(game["run"], "Game is missing 'run' method!");
+  this.assert(game["update"], "Game is missing 'update' method!");
+
+  this.FSM = new JEM.FsmManager();
+  this.switchboard = new JEM.Switchboard();
+  this.pixi = this.initPixi();
+  this.game = game;
+
+  this.game.start();
+  this.addTicker(game);
 };
 
 JEM.prototype.reset = function() {
@@ -47,11 +58,6 @@ JEM.prototype.width = function() {
 
 JEM.prototype.height = function() {
   return this.pixi ? this.pixi.screen.height : window.innerHeight;
-};
-
-JEM.prototype.setGame = function(game) {
-  this.assert(gameLoop["update"], "Invalid game loop!");
-  this.game = game;
 };
 
 JEM.prototype.setAssertRenderer = function(renderer) {
@@ -108,6 +114,4 @@ JEM.prototype.tick = function(dt) {
   
   this.game.update(dt);
 };
-
-const jem = new JEM();
 
