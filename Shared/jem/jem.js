@@ -1,50 +1,113 @@
-jem = {
-    assertRenderer: null,
-    newTickers: [],
-    tickers: [],
-    expiredTickers: [],
+const JEM = function() {
+  this.assertRenderer = null;
+  this.newTickers = [];
+  this.tickers = [];
+  this.expiredTickers = [];
+  
+  this.FSM = null;
+  this.switchboard = null;
+  this.game = null;
 
-    setAssertRenderer: function(renderer) {
-        this.assertRenderer = renderer;
-    },
-
-    assert: function(test, message) {
-        if (!test) {
-            console.log(message);
-
-            if (this.assertRenderer) {
-                this.assertRenderer.render(message);
-            }
-
-            debugger;
-        }
-    },
-
-    addTicker: function(ticker) {
-        this.newTickers.push(ticker);
-    },
-
-    removeTicker: function(ticker) {
-        this.expiredTickers.push(ticker);
-    },
-
-    tick: function(dt) {
-        this.expiredTickers.forEach((ticker) => {
-            if (this.tickers.indexOf(ticker) >= 0) {
-                jem.Utils.removeElement(this.tickers, ticker, true);
-            }
-        });
-        this.expiredTickers.length = 0;
-
-        this.newTickers.forEach((ticker) => {
-            if (this.tickers.indexOf(ticker) < 0) {
-                this.tickers.push(ticker);
-            }
-        });
-        this.newTickers.length = 0;
-
-        this.tickers.forEach((ticker) => {
-            ticker.update(dt);
-        });
-    },
+  this.init();
 };
+
+JEM.prototype.init = function() {
+  this.FSM = new FsmManager();
+  this.switchboard = new Switchboard();
+  this.pixi = initPixi();
+};
+
+JEM.prototype.reset = function() {
+  this.FSM.clear();
+  this.switchboard.clear();
+};
+
+JEM.prototype.initPixi = function() {
+  // Create a Pixi Application
+  const app = new PIXI.Application({
+    antialias: false,   // default: false
+    resolution: 1       // default: 1
+  });
+
+  app.renderer.view.style.position = "absolute";
+  app.renderer.view.style.display = "block";
+  app.renderer.autoDensity = true;
+  app.resizeTo = window;
+
+  document.body.appendChild(app.view);
+  
+  app.ticker.add((dt) => this.tick(dt));
+  
+  return app;
+};
+
+JEM.prototype.width = function() {
+  return this.pixi ? this.pixi.screen.width : window.innerWidth;
+};
+
+JEM.prototype.height = function() {
+  return this.pixi ? this.pixi.screen.height : window.innerHeight;
+};
+
+JEM.prototype.setGame = function(game) {
+  this.assert(gameLoop["update"], "Invalid game loop!");
+  this.game = game;
+};
+
+JEM.prototype.setAssertRenderer = function(renderer) {
+  this.assertRenderer = renderer;
+};
+
+JEM.prototype.assert = function(test, message) {
+  if (!test) {
+    console.log(message);
+  
+    if (this.assertRenderer) {
+        this.assertRenderer.render(message);
+    }
+  
+    debugger;
+  }
+};
+
+JEM.prototype.addTicker = function(ticker) {
+  this.newTickers.push(ticker);
+};
+
+JEM.prototype.removeTicker = function(ticker) {
+  this.expiredTickers.push(ticker);
+};
+
+JEM.prototype.clearTickers = function() {
+  this.newTickers.length = 0;
+  this.expiredTickers.length = 0;
+  this.tickers.length = 0;
+};
+
+JEM.prototype.tick = function(dt) {
+  this.expiredTickers.forEach((ticker) => {
+    if (this.tickers.indexOf(ticker) >= 0) {
+        JEM.Utils.removeElement(this.tickers, ticker, true);
+    }
+  });
+  this.expiredTickers.length = 0;
+
+  this.newTickers.forEach((ticker) => {
+    if (this.tickers.indexOf(ticker) < 0) {
+        this.tickers.push(ticker);
+    }
+  });
+  this.newTickers.length = 0;
+
+  for (var ticker of this.tickers) {
+      ticker.update(dt);
+      if (this.tickers.length === 0) {
+        break;
+      }
+  }
+  
+  this.game.update(dt);
+};
+
+const jem = new JEM();
+

@@ -4,8 +4,8 @@
  * onAdded()
  * onRemoved()
  * update(param)
- * 
- * @param {If 'true', the update order of elements doesn't change when remove elements} preserveUpdateOrder 
+ *
+ * @param {If 'true', the update order of elements doesn't change when remove elements} preserveUpdateOrder
  */
 jem.UpdateQueue = function(preserveUpdateOrder) {
     this.toAdd = [];
@@ -17,10 +17,8 @@ jem.UpdateQueue = function(preserveUpdateOrder) {
 };
 
 jem.UpdateQueue.prototype.destroy = function() {
-    this.toAdd.length = 0;
-    this.toRemove.length = 0;
-    this.updating.length = 0;
-    jem.removeTicker(this);
+  this.clear();
+  jem.removeTicker(this);
 };
 
 jem.UpdateQueue.prototype.enforceInterface = function(element) {
@@ -44,6 +42,23 @@ jem.UpdateQueue.prototype.remove = function(element) {
     this.toRemove.push(element);
 };
 
+jem.UpdateQueue.prototype.clear = function() {
+  for (var element of this.toAdd) {
+    element.onRemoved();
+  }
+  this.toAdd.length = 0;
+  
+  for (element of this.toRemove) {
+    element.onRemoved();
+  }
+  this.toRemove.length = 0;
+  
+  for (element of this.updating) {
+    element.onRemoved();
+  }
+  this.updating.length = 0;
+};
+
 jem.UpdateQueue.prototype.update = function(param) {
     this.toRemove.forEach((element) => {
         if (this.updating.indexOf(element) >= 0) {
@@ -62,7 +77,10 @@ jem.UpdateQueue.prototype.update = function(param) {
 
     this.toAdd.length = 0;
 
-    this.updating.forEach((element) => {
-        element.update(param);
-    });
+    for (var element of this.updating) {
+      element.update(param);
+      if (this.updating.length === 0) {
+        break;
+      }
+    }
 };

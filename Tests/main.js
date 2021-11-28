@@ -39,25 +39,8 @@ const BathGame = function() {
   this.bubbles = null;
 
   this.sprites = {};
-  this.pixiApp = this.initPIXI();
+  jem.pixi = this.initPIXI();
   this.loadImages();
-};
-
-BathGame.prototype.initPIXI = function() {
-  // Create a Pixi Application
-  const app = new PIXI.Application({
-    antialias: false,   // default: false
-    resolution: 1       // default: 1
-  });
-
-  app.renderer.view.style.position = "absolute";
-  app.renderer.view.style.display = "block";
-  app.renderer.autoDensity = true;
-  app.resizeTo = window;
-
-  document.body.appendChild(app.view);
-
-  return app;
 };
 
 BathGame.prototype.loadImages = function() {
@@ -89,7 +72,8 @@ BathGame.prototype.setup = function() {
 
   this.level = 1;
   this.startLevel();
-  this.pixiApp.ticker.add((dt) => this.update(dt));
+  
+  jem.setGame(this);
 };
 
 BathGame.prototype.createMines = function() {
@@ -120,7 +104,7 @@ BathGame.prototype.placeChest = function() {
   this.chest.x = this.xFromColumn(chestColumn);
   this.chest.alpha = this.CHEST_ALPHA;
 
-  this.pixiApp.stage.addChild(this.chest);
+  jem.pixi.stage.addChild(this.chest);
 };
 
 BathGame.prototype.resetPlayer = function() {
@@ -129,7 +113,7 @@ BathGame.prototype.resetPlayer = function() {
   this.player.x = this.playField.left + Math.floor(this.gameSize.cols / 2) * this.TILE_SIZE * this.gameScale;
   this.player.y = this.playField.top;
 
-  this.pixiApp.stage.addChild(this.player);
+  jem.pixi.stage.addChild(this.player);
 };
 
 BathGame.prototype.placeMines = function() {
@@ -189,7 +173,7 @@ BathGame.prototype.placeMines = function() {
 
     mine.x = this.xFromColumn(col);
     mine.y = this.yFromRow(row);
-    this.pixiApp.stage.addChild(mine);
+    jem.pixi.stage.addChild(mine);
 
     numMines -= 1;
     mineIndex += 1;
@@ -221,14 +205,6 @@ BathGame.prototype.getMineCount = function() {
 BathGame.prototype.update = function(dt) {
 };
 
-BathGame.prototype.width = function() {
-  return this.pixiApp ? this.pixiApp.screen.width : window.innerWidth;
-};
-
-BathGame.prototype.height = function() {
-  return this.pixiApp ? this.pixiApp.screen.height : window.innerHeight;
-};
-
 BathGame.prototype.getSprite = function(name) {
   var sprite = this.sprites[name];
 
@@ -247,28 +223,28 @@ BathGame.prototype.getSprite = function(name) {
 
 BathGame.prototype.computePlayFieldSize = function() {
   // The game wants a 16x9 portrait playField.
-  const pixPerRow = this.pixiApp.renderer.height / this.gameSize.rows;
-  const pixPerCol = this.pixiApp.renderer.width / this.gameSize.cols;
+  const pixPerRow = jem.pixi.renderer.height / this.gameSize.rows;
+  const pixPerCol = jem.pixi.renderer.width / this.gameSize.cols;
   const pixSize = Math.min(pixPerRow, pixPerCol);
   this.gameScale = Math.floor(pixSize / this.TILE_SIZE);
   this.gameScale = Math.max(1, this.gameScale);
 
   this.playField.width = this.gameScale * this.TILE_SIZE * this.gameSize.cols;
   this.playField.height = this.gameScale * this.TILE_SIZE * this.gameSize.rows;
-  this.playField.left = Math.floor((this.pixiApp.renderer.width - this.playField.width) / 2);
-  this.playField.top = this.pixiApp.renderer.height - this.playField.height;
+  this.playField.left = Math.floor((jem.pixi.renderer.width - this.playField.width) / 2);
+  this.playField.top = jem.pixi.renderer.height - this.playField.height;
 };
   
 BathGame.prototype.createBackground = function() {
   if (this.backSprite) {
-    this.pixiApp.stage.removeChild(this.backSprite);
+    jem.pixi.stage.removeChild(this.backSprite);
     this.backSprite = null;
   }
 
   this.backTexture = PIXI.RenderTexture.create(
-    this.pixiApp.screen.width,
-    this.pixiApp.screen.height,
-  );    
+    jem.pixi.screen.width,
+    jem.pixi.screen.height,
+  );
   this.backSprite = new PIXI.Sprite(this.backTexture);
 
   const backContainer = new PIXI.Container();
@@ -278,18 +254,18 @@ BathGame.prototype.createBackground = function() {
   rectGfx.x = 0;
   rectGfx.y = 0;
   rectGfx.beginFill(0x000000);
-  rectGfx.drawRect(0, 0, this.pixiApp.screen.width, this.pixiApp.screen.height);
+  rectGfx.drawRect(0, 0, jem.pixi.screen.width, jem.pixi.screen.height);
   backContainer.addChild(rectGfx);
 
   // Draw sky.
   const skyGfx = new PIXI.Graphics();
-  var y0 = this.pixiApp.screen.height - this.playField.height;
+  var y0 = jem.pixi.screen.height - this.playField.height;
   const dy = y0;
   for (var i=y0; i>=0; --i) {
     const fadeFactor = Math.log(i + 1) / Math.log(dy + 1);
     skyGfx.lineStyle(1, this.COLOR_SKY, fadeFactor);
     skyGfx.moveTo(0, i);
-    skyGfx.lineTo(this.pixiApp.screen.width + this.playField.width, i);
+    skyGfx.lineTo(jem.pixi.screen.width + this.playField.width, i);
   }
   backContainer.addChild(skyGfx);
   
@@ -297,13 +273,13 @@ BathGame.prototype.createBackground = function() {
   const ship = this.getSprite("ship");
   ship.anchor.x = 0.5;
   ship.anchor.y = 1.0;
-  ship.x = Math.floor(this.pixiApp.renderer.width / 2);
+  ship.x = Math.floor(jem.pixi.renderer.width / 2);
   ship.y = this.playField.top + this.WATERLINE * this.gameScale;
   backContainer.addChild(ship);
 
   // Draw depths.
   const gradientGfx = new PIXI.Graphics();
-  y0 = this.pixiApp.screen.height - this.playField.height;
+  y0 = jem.pixi.screen.height - this.playField.height;
   const numLines = this.PHOTO_LAYER_ROWS * this.TILE_SIZE * this.gameScale;
 
   for (var i=0; i<numLines; ++i) {
@@ -311,7 +287,7 @@ BathGame.prototype.createBackground = function() {
     gradColor = Math.max(gradColor, 0x000000);
     gradientGfx.lineStyle(1, gradColor, 0.67);
     // gradientGfx.moveTo(0, y0 + i);
-    // gradientGfx.lineTo(this.pixiApp.screen.width + this.playField.width, y0 + i);
+    // gradientGfx.lineTo(jem.pixi.screen.width + this.playField.width, y0 + i);
     gradientGfx.moveTo(this.playField.left, y0 + i);
     gradientGfx.lineTo(this.playField.left + this.playField.width, y0 + i);
   }
@@ -343,8 +319,8 @@ BathGame.prototype.createBackground = function() {
     top += this.TILE_SIZE * this.gameScale;
   }
 
-  this.pixiApp.renderer.render(backContainer, this.backTexture);
-  this.pixiApp.stage.addChild(this.backSprite);
+  jem.pixi.renderer.render(backContainer, this.backTexture);
+  jem.pixi.stage.addChild(this.backSprite);
 };
 
 // ============================================================================

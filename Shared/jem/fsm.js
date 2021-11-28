@@ -16,12 +16,13 @@ jem.State.prototype.exit = function() {
     this.onExit();
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 jem.FSM = function(owner) {
     this.owner = owner;
     this.currentState = null;
     this.states = {};
     this.transitions = [];
-    this.wantsTermination = false;
 };
 
 jem.FSM.prototype.createState = function(name, onEnter, onUpdate, onExit) {
@@ -43,8 +44,15 @@ jem.FSM.prototype.setState = function(stateName) {
     this.transitions.push(newState);
 };
 
-jem.FSM.prototype.terminate = function() {
-    this.wantsTermiation = true;
+jem.FSM.prototype.onRemoved = function() {
+  this.destroy();
+};
+
+jem.FSM.prototype.destroy = function() {
+  for (var stateName in this.states) {
+    const state = this.states[stateName];
+    state.destroy();
+  }
 };
 
 jem.FSM.prototype.update = function(dt) {
@@ -55,23 +63,38 @@ jem.FSM.prototype.update = function(dt) {
             if (this.currentState) {
                 this.currentState.onExit();
             }
+            
+            if (newState) {
+              newState.onEnter();
+            }
 
             this.currentState = newState;
-            newState.onEnter();
         }
     }
 
     if (this.currentState) {
         this.currentState.update(dt);
     }
-
-    return this.wantsTermination;
 };
 
-jem.FsmManager = {
-    fsms: new jem.UpdateQueue(true),
+///////////////////////////////////////////////////////////////////////////////
 
-    createFsm: function(owner) {
-        return new jem.FSM(owner);
-    }
+jem.FsmManager = function() {
+  this.fsms = new jem.UpdateQueue(true);
+  jem.addTicker(this);
+};
+
+jem.FsmManager.prototype.createFsm = function(owner) {
+  const newFsm = new jem.FSM(owner);
+  this.fsms.add(newFsm);
+  
+  return newFsm;
+};
+
+jem.FsmManager.prototype.destroyFsm = function(fsm) {
+  this.fsms.remove(fsm);
+};
+
+jem.FsmManager.prototype.clear = function() {
+  this.fsms.clear();
 };
