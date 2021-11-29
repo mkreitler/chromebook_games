@@ -24,13 +24,22 @@ JEM.prototype.start = function(game) {
   this.pixi = this.initPixi();
   this.game = game;
 
-  this.game.start();
+  this.game.run();
   this.addTicker(game);
 };
 
-JEM.prototype.reset = function() {
+JEM.prototype.stop = function() {
+    this.game = null;
+};
+
+JEM.prototype.reset = function(doStop) {
   this.FSM.clear();
   this.switchboard.clear();
+  this.clearTickers();
+
+  if (doStop) {
+      this.stop();
+  }
 };
 
 JEM.prototype.initPixi = function() {
@@ -91,27 +100,29 @@ JEM.prototype.clearTickers = function() {
 };
 
 JEM.prototype.tick = function(dt) {
-  this.expiredTickers.forEach((ticker) => {
+    this.expiredTickers.forEach((ticker) => {
     if (this.tickers.indexOf(ticker) >= 0) {
         JEM.Utils.removeElement(this.tickers, ticker, true);
     }
-  });
-  this.expiredTickers.length = 0;
+    });
+    this.expiredTickers.length = 0;
 
-  this.newTickers.forEach((ticker) => {
+    this.newTickers.forEach((ticker) => {
     if (this.tickers.indexOf(ticker) < 0) {
         this.tickers.push(ticker);
     }
-  });
-  this.newTickers.length = 0;
+    });
+    this.newTickers.length = 0;
 
-  for (var ticker of this.tickers) {
-      ticker.update(dt);
-      if (this.tickers.length === 0) {
-        break;
-      }
-  }
-  
-  this.game.update(dt);
+    for (var ticker of this.tickers) {
+        ticker.update(dt);
+        if (this.tickers.length === 0) {
+            break;
+        }
+    }
+
+    if (this.game) {
+        this.game.update(dt);
+    }
 };
 

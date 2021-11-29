@@ -16,16 +16,17 @@ JEM.Tests = {
         if (this.testIndex < this.tests.length) {
             try {
                 this.tests[this.testIndex]();
-                this.testIndex += 1;
             }
             catch(err) {
                 // Nothing to do, here.
             }
+            finally {
+                this.testIndex += 1;
+            }
         }
         else {
             this.report();
-            jem.removeTicker(this);
-            jem.reset();
+            jem.reset(true);
         }
     },
 
@@ -57,6 +58,16 @@ JEM.Tests = {
         const secondArray = [1, 2, 3, 4, 5];
         jem.Utils.removeElement(secondArray, 2);
         this.assert(secondArray[2] !== 3);
+
+        const thirdArray = [1, 3, 2, 3, 5];
+        jem.Utils.removeElement(thirdArray, 3);
+        this.assert(thirdArray[1] !== 3);
+        this.assert(thirdArray[2] === 3);
+
+        const fourthArray = [1, 3, 2, 3, 5];
+        jem.Utils.removeElement(thirdArray, 3, true);
+        this.assert(fourthArray[3] !== 3);
+        this.assert(fourthArray[1] === 3);
     },
 };
 

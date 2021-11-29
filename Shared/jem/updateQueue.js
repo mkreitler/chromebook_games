@@ -54,6 +54,7 @@ JEM.UpdateQueue.prototype.clear = function() {
   this.toRemove.length = 0;
   
   for (element of this.updating) {
+    jem.removeTicker(element);
     element.onRemoved();
   }
   this.updating.length = 0;

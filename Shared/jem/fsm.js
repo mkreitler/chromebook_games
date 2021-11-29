@@ -81,7 +81,6 @@ JEM.FSM.prototype.update = function(dt) {
 
 JEM.FsmManager = function() {
   this.fsms = new JEM.UpdateQueue(true);
-  jem.addTicker(this.fsms);
 };
 
 JEM.FsmManager.prototype.createFsm = function(owner) {
