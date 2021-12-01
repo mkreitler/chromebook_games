@@ -12,20 +12,24 @@ const JEM = function() {
 };
 
 JEM.create = function() {
-    return new JEM();
+    const jem = new JEM();
+
+    return jem;
 };
 
 JEM.prototype.start = function(game) {
   this.assert(game["run"], "Game is missing 'run' method!");
   this.assert(game["update"], "Game is missing 'update' method!");
 
+  jem.utils = JEM.Utils;
+  jem.keyHandler = JEM.KeyHandler;
+
   this.FSM = new JEM.FsmManager();
   this.switchboard = new JEM.Switchboard();
   this.pixi = this.initPixi();
-  this.game = game;
 
+  this.game = game;
   this.game.run();
-  this.addTicker(game);
 };
 
 JEM.prototype.stop = function() {
@@ -102,7 +106,7 @@ JEM.prototype.clearTickers = function() {
 JEM.prototype.tick = function(dt) {
     this.expiredTickers.forEach((ticker) => {
     if (this.tickers.indexOf(ticker) >= 0) {
-        JEM.Utils.removeElement(this.tickers, ticker, true);
+        JEM.utils.removeElement(this.tickers, ticker, true);
     }
     });
     this.expiredTickers.length = 0;

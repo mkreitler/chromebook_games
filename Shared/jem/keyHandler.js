@@ -10,6 +10,7 @@ JEM.KeyHandler = {
     listeners: [],
     input: null,
     line: null,
+    keys: {},
 
     // Listeners may implement any of the following functions:
     // onKeyDown(string)
@@ -21,12 +22,13 @@ JEM.KeyHandler = {
     // reaching subsequent listeners.
     addListener: function(listener) {
         if (this.listeners.indexOf(listener) < 0) {
+            jem.utils.enforceInterface(listener, "onKeyDown", "onKeyUp", "onKeyPress", "onNewLine", function(e){});
             this.listeners.push(listener);
         }
     },
 
     removeListener: function(listener) {
-        jem.Utils.removeElement(listener, true);
+        jem.utils.removeElement(listener, true);
     },
 
     onPress: function(e) {
@@ -98,13 +100,6 @@ JEM.KeyHandler = {
         else {
           lookupCode = String.fromCharCode(keyCode);
         }
-    
-        if (this.keys[lookupCode]) {
-          this.keys[lookupCode].isDown = true;
-        }
-        else {
-          this.keys[lookupCode] = {isDown: true};
-        }
         
         if (specialCode) {
             // User pressed a special key.
@@ -139,14 +134,25 @@ JEM.KeyHandler = {
             this.special.last = "";
         }
 
-        for (var listener of listeners) {
+        // We explicitly set this.keys[lookupCode].isDown AFTER calling
+        // the listeners. That way, a listener can query "isDown" in
+        // onKeyDown to differentiate between the first press and subsequent
+        // "auto-repeat" "presses".
+        for (var listener of this.listeners) {
             if (listener["onKeyDown"]) {
                 if (listener["onKeyDown"](this.got)) {
                     break;
                 }
             }
         }
-    
+
+        if (this.keys[lookupCode]) {
+          this.keys[lookupCode].isDown = true;
+        }
+        else {
+          this.keys[lookupCode] = {isDown: true};
+        }
+        
         return retVal;
     },
     
@@ -185,13 +191,31 @@ JEM.KeyHandler = {
             this.normal.down[lookupCode] = false;
         }
 
-        for (var listener of listener) {
+        for (var listener of this.listeners) {
             if (listener["onKeyUp"]) {
                 if (listener["onKeyUp"](this.got)) {
                     break;
                 }
             }
         }
+
+        for (var listener of this.listeners) {
+            if (listener["onKeyPress"]) {
+                if (listener["onKeyPress"](this.got)) {
+                    break;
+                }
+            }
+        }
+    },
+
+    isDown: function(code) {
+        var isDown = false;
+
+        if (this.keys[code]) {
+            isDown = this.keys[code].isDown;
+        }
+
+        return isDown;
     },
     
     codes: {
@@ -251,6 +275,6 @@ JEM.KeyHandler = {
     },
 };
 
-document.addEventListener("keydown", JEM.KeyHandler.onDown, true);
-document.addEventListener("keyup", JEM.KeyHandler.onUp, true);
-document.addEventListener("keypress", JEM.KeyHandler.onPress, true);
+document.addEventListener("keydown", JEM.KeyHandler.onDown.bind(JEM.KeyHandler), true);
+document.addEventListener("keyup", JEM.KeyHandler.onUp.bind(JEM.KeyHandler), true);
+document.addEventListener("keypress", JEM.KeyHandler.onPress.bind(JEM.KeyHandler), true);

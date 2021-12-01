@@ -64,7 +64,7 @@ JEM.UpdateQueue.prototype.update = function(param) {
     this.toRemove.forEach((element) => {
         if (this.updating.indexOf(element) >= 0) {
             element.onRemoved();
-            jem.Utils.removeElement(this.updating, element, this.preserveUpdateOrder);
+            jem.utils.removeElement(this.updating, element, this.preserveUpdateOrder);
         }
     });
     this.toRemove.length = 0;

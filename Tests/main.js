@@ -10,6 +10,8 @@ const BathGame = function() {
   this.CHEST_ALPHA = 0.33;
   this.MIN_MINE_ROW = 2;
   this.MOVE_VERTICAL_BIAS = 1; // The higher this value, the more likely the path to the chest will be straight up/down
+  this.SPEED = 2;
+  this.MIN_PLAYER_ALPHA = 0.2;
 
   this.gameSize = {rows: 20, cols: 11};
   this.gameScale = 1;
@@ -17,13 +19,13 @@ const BathGame = function() {
   this.backTexture = null;
   this.backSprite = null;
   this.imageInfo = [
-    {name: "bathy", url: null, onComplete: this.onImageLoaded},
     {name: "mine_black", url: null, onComplete: this.onImageLoaded},
     {name: "ship", url: null, onComplete: this.onImageLoaded},
     {name: "seaweed", url: null, onComplete: this.onImageLoaded},
-    {name: "lights", url: null, onComplete: this.onImageLoaded},
     {name: "chest", url: null, onComplete: this.onImageLoaded},
     {name: "bubble", url: null, onComplete: this.onImageLoaded},
+    {name: "bathy", url: null, onComplete: this.onImageLoaded},
+    {name: "lights", url: null, onComplete: this.onImageLoaded},
   ];
   this.imagesLoaded = 0;
   this.sprites = {};
@@ -37,12 +39,17 @@ const BathGame = function() {
   this.lights = null;
   this.chest = null;
   this.bubbles = null;
-
+  this.from = {x: 0, y: 0},
+  this.to = {x: 0, y: 0},
+  this.moveParam;
+  this.fsm = null;
+  this.states = {};
+  this.activeState = null;
+  
   this.sprites = {};
 };
 
 BathGame.prototype.run = function() {
-  jem.pixi = this.initPIXI();
   this.loadImages();
 };
 
@@ -56,15 +63,174 @@ BathGame.prototype.loadImages = function() {
   .load(this.onImagesLoaded);
 };
 
+// Update =====================================================================
+BathGame.prototype.update = function(dt) {
+
+};
+
+BathGame.prototype.startMove = function() {
+  this.moveParam = 0.0;
+};
+
+BathGame.prototype.updateMove = function(dt) {
+  var moveIsDone = false;
+
+  // this.moveParam += dt;
+  // this.moveParam = Math.min(this.moveParam. this.MOVE_PERIOD);
+  // const param = Math.sin(this.moveParam * Math.PI / 2 / this.MOVE_PERIOD);
+
+  const dx = this.to.x - this.from.x;
+  const dy = this.to.y - this.from.y;
+
+  if (dx > 0) {
+    const deltaX = this.SPEED * dt;
+    var newX = this.player.x + deltaX;
+    newX = Math.min(newX, this.to.x);
+    moveIsDone = newX === this.to.x;
+    this.player.x = newX;
+  }
+  else if (dx < 0) {
+    const deltaX = -this.SPEED * dt;
+    var newX = this.player.x + deltaX;
+    newX = Math.max(newX, this.to.x);
+    moveIsDone = newX === this.to.x;
+    this.player.x = newX;
+  }
+
+  if (dy > 0) {
+    const deltaY = this.SPEED * dt;
+    var newY = this.player.y + deltaY;
+    newY = Math.min(newY, this.to.y);
+    moveIsDone = newY === this.to.y;
+    this.player.y = newY;
+  }
+  else if (dy < 0) {
+    const deltaY = -this.SPEED * dt;
+    var newY = this.player.y + deltaY;
+    newY = Math.max(newY, this.to.y);
+    moveIsDone = newY === this.to.y;
+    this.player.y = newY;
+  }
+
+  const newAlpha = Math.max(1 - (this.player.y - this.playField.top) / (this.playField.bottom - this.playField.top), this.MIN_PLAYER_ALPHA);
+  this.player.alpha = newAlpha;
+  this.lights.x = this.player.x;
+  this.lights.y = this.player.y;
+
+  if (moveIsDone) {
+    this.setState("waitForMove");
+  }
+};
+
+// ============================================================================
+// State Input Handlers
+BathGame.prototype.waitingForKeyDown = function(code) {
+  if (!jem.keyHandler.isDown(code)) {
+    switch(code) {
+      case "left": {
+        this.moveLeft();
+        break;
+      }
+
+      case "right": {
+        this.moveRight();
+        break;
+      }
+
+      case "up": {
+        this.moveUp();
+        break;
+      }
+
+      case "down": {
+        this.moveDown();
+        break;
+      }
+
+      case "space": {
+        this.sonarPing();
+        break;
+      }
+
+      default: {
+        // Nothing to do here.
+      }
+    }
+  }
+};
+
+// ============================================================================
+BathGame.prototype.setState = function(stateName) {
+  this.activeState = this.fsm.setState(stateName);
+};
+
 BathGame.prototype.onImagesLoaded = function() {
   // TODO: timeout if image load fails?
   game.setup();
+};
+
+BathGame.prototype.moveLeft = function() {
+  var newX = this.player.x;
+  newX -= this.TILE_SIZE * this.gameScale;
+  newX = Math.max(newX, this.playField.left);
+
+  if (newX != this.player.x) {
+    this.from.y = this.to.y = this.player.y;
+    this.from.x = this.player.x;
+    this.to.x = newX;
+    this.setState("doMove");
+  }
+};
+
+BathGame.prototype.moveRight = function() {
+  var newX = this.player.x;
+  newX += this.TILE_SIZE * this.gameScale;
+  newX = Math.min(newX, this.playField.right - this.TILE_SIZE * this.gameScale);
+
+  if (newX != this.player.x) {
+    this.from.y = this.to.y = this.player.y;
+    this.from.x = this.player.x;
+    this.to.x = newX;
+    this.setState("doMove");
+  }
+};
+
+BathGame.prototype.moveUp = function() {
+  var newY = this.player.y;
+  newY -= this.TILE_SIZE * this.gameScale;
+  newY = Math.max(newY, this.playField.top);
+
+  if (newY != this.player.y) {
+    this.from.x = this.to.x = this.player.x;
+    this.from.y = this.player.y;
+    this.to.y = newY;
+    this.setState("doMove");
+  }
+};
+
+BathGame.prototype.moveDown = function() {
+  var newY = this.player.y;
+  newY += this.TILE_SIZE * this.gameScale;
+  newY = Math.min(newY, this.playField.bottom - this.TILE_SIZE * this.gameScale);
+
+  if (newY != this.player.y) {
+    this.from.x = this.to.x = this.player.x;
+    this.to.y = newY;
+    this.from.y = this.player.y;
+    this.setState("doMove");
+  }
+};
+
+BathGame.prototype.sonarPing = function() {
+  // TODO: add this.
 };
 
 BathGame.prototype.setup = function() {
   this.imageInfo.forEach((info) => {
     this.sprites[info.name] = new PIXI.Sprite(PIXI.Loader.shared.resources[info.name].texture);
   });
+
+  jem.keyHandler.addListener(this);
 
   this.computePlayFieldSize();
   this.createBackground();
@@ -73,32 +239,44 @@ BathGame.prototype.setup = function() {
   this.createMines();
   this.createPlayer();
 
+  this.fsm = jem.FSM.create(this);
+  this.states["waitForMove"] = this.fsm.createState("waitForMove");
+  this.states["doMove"] = this.fsm.createState("doMove", this.startMove, this.updateMove);
+
+  this.states["waitForMove"].onKeyDown = this.waitingForKeyDown.bind(this);
+
   this.level = 1;
   this.startLevel();
-  
-  jem.setGame(this);
 };
 
 BathGame.prototype.createMines = function() {
   for (var i=0; i<this.maxMines; ++i) {
-    this.mines.push(new PIXI.Sprite(this.getSprite("mine_black").texture));
+    const mine = new PIXI.Sprite(this.getSprite("mine_black").texture);
+    mine.width *= this.gameScale;
+    mine.height *= this.gameScale;
+    this.mines.push(mine);
   }
 };
 
 BathGame.prototype.createPlayer = function() {
   this.player = new PIXI.Sprite(this.getSprite("bathy").texture);
   this.lights = new PIXI.Sprite(this.getSprite("lights").texture);
-  this.player.addChild(this.lights);
+  this.player.width *= this.gameScale;
+  this.player.height *= this.gameScale;
 };
 
 BathGame.prototype.createChest = function() {
   this.chest = new PIXI.Sprite(this.getSprite("chest").texture);
+  this.chest.width *= this.gameScale;
+  this.chest.height *= this.gameScale;
 };
 
 BathGame.prototype.startLevel = function() {
   this.placeChest();
   this.resetPlayer();
   this.placeMines();
+
+  this.setState("waitForMove");
 };
 
 BathGame.prototype.placeChest = function() {
@@ -115,8 +293,11 @@ BathGame.prototype.resetPlayer = function() {
   this.lights.alpha = 1;
   this.player.x = this.playField.left + Math.floor(this.gameSize.cols / 2) * this.TILE_SIZE * this.gameScale;
   this.player.y = this.playField.top;
+  this.lights.x = this.player.x;
+  this.lights.y = this.player.y;
 
   jem.pixi.stage.addChild(this.player);
+  jem.pixi.stage.addChild(this.lights);
 };
 
 BathGame.prototype.placeMines = function() {
@@ -129,6 +310,11 @@ BathGame.prototype.placeMines = function() {
       allPositions.push(iRow * this.gameSize.cols + iCol);
     }
   }
+
+  // Next, prevent a mine from being placed on the chest.
+  var posVal = this.rowFromY(this.chest.y) * this.gameSize.cols + this.columnFromX(this.chest.x);
+  var valIndex = allPositions.indexOf(posVal);
+  jem.utils.removeElementAtIndex(allPositions, valIndex);
 
   // Next, build a path from the chest back up to the surface.
   var currentRow = this.gameSize.rows - 1;
@@ -157,9 +343,9 @@ BathGame.prototype.placeMines = function() {
     }
 
     if (currentRow != oldRow || currentCol != oldCol) {
-      const posVal = currentRow * this.gameSize.cols + currentCol;
-      const valIndex = allPositions.indexOf(posVal);
-      jem.Utils.removeElementAtIndex(allPositions, valIndex);
+      posVal = currentRow * this.gameSize.cols + currentCol;
+      valIndex = allPositions.indexOf(posVal);
+      jem.utils.removeElementAtIndex(allPositions, valIndex);
     }
   }
 
@@ -174,8 +360,8 @@ BathGame.prototype.placeMines = function() {
     const col = allPositions[posIndex] - row * this.gameSize.cols;
     const mine = this.mines[mineIndex];
 
-    mine.x = this.xFromColumn(col);
-    mine.y = this.yFromRow(row);
+    mine.x = this.xFromColumn(col) + this.TILE_SIZE / 2 * this.gameScale - mine.width / 2;
+    mine.y = this.yFromRow(row) + this.TILE_SIZE / 2 * this.gameScale - mine.height / 2;
     jem.pixi.stage.addChild(mine);
 
     numMines -= 1;
@@ -188,7 +374,7 @@ BathGame.prototype.rowFromY = function(y) {
 };
 
 BathGame.prototype.yFromRow = function(row) {
-  return this.playField.top + this.TILE_SIZE * this.gameScale * row;
+  return Math.floor(this.playField.top + this.TILE_SIZE * this.gameScale * row);
 };
 
 BathGame.prototype.columnFromX = function(x) {
@@ -196,7 +382,7 @@ BathGame.prototype.columnFromX = function(x) {
 };
 
 BathGame.prototype.xFromColumn = function(col) {
-  return this.playField.left + this.TILE_SIZE * this.gameScale * col;
+  return Math.floor(this.playField.left + this.TILE_SIZE * this.gameScale * col);
 };
 
 BathGame.prototype.getMineCount = function() {
@@ -205,37 +391,31 @@ BathGame.prototype.getMineCount = function() {
   return Math.round(this.minMines + (this.maxMines - this.minMines) * p);
 };
 
-BathGame.prototype.update = function(dt) {
-};
-
 BathGame.prototype.getSprite = function(name) {
-  var sprite = this.sprites[name];
-
-  if (sprite) {
-    if (sprite.width === sprite.texture.width) {
-      sprite.width *= this.gameScale;
-    }
-
-    if (sprite.height === sprite.texture.height) {
-      sprite.height *= this.gameScale;
-    }
-  }
-
-  return sprite;
+  return this.sprites[name];
 }
 
 BathGame.prototype.computePlayFieldSize = function() {
   // The game wants a 16x9 portrait playField.
-  const pixPerRow = jem.pixi.renderer.height / this.gameSize.rows;
-  const pixPerCol = jem.pixi.renderer.width / this.gameSize.cols;
+  const pixPerRow = jem.height() / this.gameSize.rows;
+  const pixPerCol = jem.width() / this.gameSize.cols;
   const pixSize = Math.min(pixPerRow, pixPerCol);
   this.gameScale = Math.floor(pixSize / this.TILE_SIZE);
   this.gameScale = Math.max(1, this.gameScale);
 
   this.playField.width = this.gameScale * this.TILE_SIZE * this.gameSize.cols;
   this.playField.height = this.gameScale * this.TILE_SIZE * this.gameSize.rows;
-  this.playField.left = Math.floor((jem.pixi.renderer.width - this.playField.width) / 2);
-  this.playField.top = jem.pixi.renderer.height - this.playField.height;
+
+  while (this.playField.height > jem.height()) {
+    this.gameScale /= 2;
+    this.playField.width = this.gameScale * this.TILE_SIZE * this.gameSize.cols;
+    this.playField.height = this.gameScale * this.TILE_SIZE * this.gameSize.rows;
+  }
+
+  this.playField.left = Math.floor((jem.width() - this.playField.width) / 2);
+  this.playField.top = jem.height() - this.playField.height;
+  this.playField.right = this.playField.left + this.playField.width;
+  this.playField.bottom = this.playField.top + this.playField.height;
 };
   
 BathGame.prototype.createBackground = function() {
@@ -274,9 +454,11 @@ BathGame.prototype.createBackground = function() {
   
   // Draw ship.
   const ship = this.getSprite("ship");
+  ship.width *= this.gameScale;
+  ship.height *= this.gameScale;
   ship.anchor.x = 0.5;
   ship.anchor.y = 1.0;
-  ship.x = Math.floor(jem.pixi.renderer.width / 2);
+  ship.x = Math.floor(jem.width() / 2);
   ship.y = this.playField.top + this.WATERLINE * this.gameScale;
   backContainer.addChild(ship);
 
@@ -298,6 +480,8 @@ BathGame.prototype.createBackground = function() {
 
   // Draw seaweed.
   const sourceSprite = this.getSprite("seaweed");
+  sourceSprite.width *= this.gameScale;
+  sourceSprite.height *= this.gameScale;
 
   var top = this.playField.top;
   for (var iRow=0; iRow<this.gameSize.rows; ++iRow) {
@@ -305,12 +489,16 @@ BathGame.prototype.createBackground = function() {
     var right = this.playField.left + this.playField.width;
     while (left > -this.TILE_SIZE * this.gameScale) {
       var cloneSprite = new PIXI.Sprite(sourceSprite.texture);
+      cloneSprite.width *= this.gameScale;
+      cloneSprite.height *= this.gameScale;
       cloneSprite.alpha = 1.0 - Math.log(iRow + 1) * this.SEAWEED_FADE_POWER;
       cloneSprite.x = left;
       cloneSprite.y = top;
       backContainer.addChild(cloneSprite);
 
       cloneSprite = new PIXI.Sprite(sourceSprite.texture);
+      cloneSprite.width *= this.gameScale;
+      cloneSprite.height *= this.gameScale;
       cloneSprite.alpha = 1.0 - Math.log(iRow + 1) * this.SEAWEED_FADE_POWER;
       cloneSprite.x = right;
       cloneSprite.y = top;
@@ -326,7 +514,22 @@ BathGame.prototype.createBackground = function() {
   jem.pixi.stage.addChild(this.backSprite);
 };
 
+// Listener Interfaces ========================================================
+BathGame.prototype.onKeyDown = function(code) {
+  if (this.activeState && this.activeState["onKeyDown"]) {
+    this.activeState["onKeyDown"](code);
+  }
+};
+
+BathGame.prototype.onKeyUp = function(code) {
+};
+
+BathGame.prototype.onKeyPress = function(code) {
+};
+
+// Don't need to implement onNewLine()
 // ============================================================================
 // Create the engine and the game.
-const jem = JEM.create();
+var jem = JEM.create();
 const game = new BathGame();
+jem.start(game);

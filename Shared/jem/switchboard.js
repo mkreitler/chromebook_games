@@ -87,15 +87,15 @@ JEM.Switchboard.prototype.safeRemoveListener = function(listener, message) {
   if (message) {
     var listeners = this.messageTable[message];
     if (listeners && listeners.indexOf(listener) >= 0) {
-      jem.Utils.removeElement(listeners, entrty.listener, this.preserveListenerOrder);
+      jem.utils.removeElement(listeners, listener, this.preserveListenerOrder);
     }
   }
   else {
-    for (var curMessage of this.messageTable) {
+    for (var curMessage in this.messageTable) {
       const listeners = this.messageTable[curMessage];
 
       if (listeners && listeners.indexOf(listener) >= 0) {
-        jem.Utils.removeElement(listeners, listener, this.preserveListenerOrder);
+        jem.utils.removeElement(listeners, listener, this.preserveListenerOrder);
       }
     }
   }

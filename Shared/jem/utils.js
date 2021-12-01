@@ -32,5 +32,22 @@ JEM.Utils = {
             var index = fromLast ? array.lastIndexOf(element) : array.indexOf(element);
             this.removeElementAtIndex(array, index, preserveOrder);
         }
+    },
+
+    /**
+     * Adds NOP functions to missing interface elements. Expects the following arguments:
+     * @param {object on which to enforce the interface} object
+     * @param {any number of keys representing interface members} String
+     * @param {a default function to add to the object for each missing interface member} function
+     */
+    enforceInterface: function() {
+        var obj = arguments[0];
+        var defaultFn = arguments[arguments.length - 1];
+
+        for (var i=1; i<arguments.length - 1; ++i) {
+            if (!obj[arguments[i]]) {
+                obj[arguments[i]] = defaultFn;
+            }
+        }
     }
 };
