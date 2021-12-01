@@ -11,6 +11,7 @@ const BathGame = function() {
   this.MIN_MINE_ROW = 2;
   this.MOVE_VERTICAL_BIAS = 1; // The higher this value, the more likely the path to the chest will be straight up/down
   this.SPEED = 2;
+  this.MOVE_PERIOD = 20;
   this.MIN_PLAYER_ALPHA = 0.2;
 
   this.gameSize = {rows: 20, cols: 11};
@@ -75,48 +76,23 @@ BathGame.prototype.startMove = function() {
 BathGame.prototype.updateMove = function(dt) {
   var moveIsDone = false;
 
-  // this.moveParam += dt;
-  // this.moveParam = Math.min(this.moveParam. this.MOVE_PERIOD);
-  // const param = Math.sin(this.moveParam * Math.PI / 2 / this.MOVE_PERIOD);
+  this.moveParam += dt;
+  this.moveParam = Math.min(this.moveParam, this.MOVE_PERIOD);
+  var param = Math.sin(this.moveParam * Math.PI / 2 / this.MOVE_PERIOD);
 
-  const dx = this.to.x - this.from.x;
-  const dy = this.to.y - this.from.y;
+  if (param > 0.99) param = 1.0;
 
-  if (dx > 0) {
-    const deltaX = this.SPEED * dt;
-    var newX = this.player.x + deltaX;
-    newX = Math.min(newX, this.to.x);
-    moveIsDone = newX === this.to.x;
-    this.player.x = newX;
-  }
-  else if (dx < 0) {
-    const deltaX = -this.SPEED * dt;
-    var newX = this.player.x + deltaX;
-    newX = Math.max(newX, this.to.x);
-    moveIsDone = newX === this.to.x;
-    this.player.x = newX;
-  }
+  var newX = this.to.x * param + this.from.x * (1.0 - param);
+  this.player.x = newX;
+  
+  var newY = this.to.y * param + this.from.y * (1.0 - param);
+  this.player.y = newY;
 
-  if (dy > 0) {
-    const deltaY = this.SPEED * dt;
-    var newY = this.player.y + deltaY;
-    newY = Math.min(newY, this.to.y);
-    moveIsDone = newY === this.to.y;
-    this.player.y = newY;
-  }
-  else if (dy < 0) {
-    const deltaY = -this.SPEED * dt;
-    var newY = this.player.y + deltaY;
-    newY = Math.max(newY, this.to.y);
-    moveIsDone = newY === this.to.y;
-    this.player.y = newY;
-  }
-
-  const newAlpha = Math.max(1 - (this.player.y - this.playField.top) / (this.playField.bottom - this.playField.top), this.MIN_PLAYER_ALPHA);
-  this.player.alpha = newAlpha;
   this.lights.x = this.player.x;
   this.lights.y = this.player.y;
 
+  moveIsDone = param === 1.0;
+  
   if (moveIsDone) {
     this.setState("waitForMove");
   }
@@ -491,7 +467,6 @@ BathGame.prototype.createBackground = function() {
       var cloneSprite = new PIXI.Sprite(sourceSprite.texture);
       cloneSprite.width *= this.gameScale;
       cloneSprite.height *= this.gameScale;
-      cloneSprite.alpha = 1.0 - Math.log(iRow + 1) * this.SEAWEED_FADE_POWER;
       cloneSprite.x = left;
       cloneSprite.y = top;
       backContainer.addChild(cloneSprite);
@@ -499,7 +474,6 @@ BathGame.prototype.createBackground = function() {
       cloneSprite = new PIXI.Sprite(sourceSprite.texture);
       cloneSprite.width *= this.gameScale;
       cloneSprite.height *= this.gameScale;
-      cloneSprite.alpha = 1.0 - Math.log(iRow + 1) * this.SEAWEED_FADE_POWER;
       cloneSprite.x = right;
       cloneSprite.y = top;
       backContainer.addChild(cloneSprite);
@@ -507,7 +481,19 @@ BathGame.prototype.createBackground = function() {
       left -= this.TILE_SIZE * this.gameScale;
       right += this.TILE_SIZE * this.gameScale;
     }
-    top += this.TILE_SIZE * this.gameScale;
+
+    const fadeGfx = new PIXI.Graphics();
+    fadeGfx.lineStyle(1, 0x000000, Math.log(iRow + 1) * this.SEAWEED_FADE_POWER);
+    const localTop = this.playField.top + iRow * this.TILE_SIZE * this.gameScale;
+    for (var i=0; i<this.TILE_SIZE * this.gameScale; ++i) {
+      fadeGfx.moveTo(0, localTop + i);
+      fadeGfx.lineTo(this.playField.left);
+      fadeGfx.moveTo(this.playField.right, localTop + i);
+      fadeGfx.lineTo(jem.width(), localTop + i);
+    }
+    backContainer.addChild(fadeGfx);
+    
+  top += this.TILE_SIZE * this.gameScale;
   }
 
   jem.pixi.renderer.render(backContainer, this.backTexture);
