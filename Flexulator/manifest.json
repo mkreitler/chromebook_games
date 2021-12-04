@@ -1,0 +1,10 @@
+{
+  "name": "Flexulator",
+  "description": "Visual arithmetic calculator.",
+  "version": "1.0.0",
+  "app": {
+    "background": {
+        "scripts": ["background.js"]
+    }
+  }
+ }

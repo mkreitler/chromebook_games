@@ -13,6 +13,7 @@ const BathGame = function() {
   this.SPEED = 2;
   this.MOVE_PERIOD = 20;
   this.MIN_PLAYER_ALPHA = 0.2;
+  this.PLAYER_FADE_POWER = 2.0;
 
   this.gameSize = {rows: 20, cols: 11};
   this.gameScale = 1;
@@ -91,6 +92,8 @@ BathGame.prototype.updateMove = function(dt) {
   this.lights.x = this.player.x;
   this.lights.y = this.player.y;
 
+  this.player.alpha = this.getPlayerAlpha();
+
   moveIsDone = param === 1.0;
   
   if (moveIsDone) {
@@ -143,6 +146,11 @@ BathGame.prototype.setState = function(stateName) {
 BathGame.prototype.onImagesLoaded = function() {
   // TODO: timeout if image load fails?
   game.setup();
+};
+
+BathGame.prototype.getPlayerAlpha = function() {
+  const depthParam = (this.player.y - this.playField.top) / this.playField.height;
+  return Math.max(this.MIN_PLAYER_ALPHA, 1.0 - Math.log(depthParam + 1) * this.PLAYER_FADE_POWER);
 };
 
 BathGame.prototype.moveLeft = function() {
@@ -265,12 +273,12 @@ BathGame.prototype.placeChest = function() {
 };
 
 BathGame.prototype.resetPlayer = function() {
-  this.player.alpha = 1;
-  this.lights.alpha = 1;
   this.player.x = this.playField.left + Math.floor(this.gameSize.cols / 2) * this.TILE_SIZE * this.gameScale;
   this.player.y = this.playField.top;
   this.lights.x = this.player.x;
   this.lights.y = this.player.y;
+  this.player.alpha = this.getPlayerAlpha();
+  this.lights.alpha = 1;
 
   jem.pixi.stage.addChild(this.player);
   jem.pixi.stage.addChild(this.lights);
@@ -483,11 +491,11 @@ BathGame.prototype.createBackground = function() {
     }
 
     const fadeGfx = new PIXI.Graphics();
-    fadeGfx.lineStyle(1, 0x000000, Math.log(iRow + 1) * this.SEAWEED_FADE_POWER);
     const localTop = this.playField.top + iRow * this.TILE_SIZE * this.gameScale;
     for (var i=0; i<this.TILE_SIZE * this.gameScale; ++i) {
+      fadeGfx.lineStyle(1, 0x000000, Math.min(1, Math.log(iRow + i / (this.TILE_SIZE * this.gameScale) + 1) * this.SEAWEED_FADE_POWER));
       fadeGfx.moveTo(0, localTop + i);
-      fadeGfx.lineTo(this.playField.left);
+      fadeGfx.lineTo(this.playField.left, localTop + i);
       fadeGfx.moveTo(this.playField.right, localTop + i);
       fadeGfx.lineTo(jem.width(), localTop + i);
     }
