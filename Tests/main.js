@@ -6,6 +6,7 @@ const BathGame = function() {
   this.COLOR_WATER = 0x0000FF;
   this.COLOR_SKY = 0x49c0ff;
   this.SEAWEED_FADE_POWER = 0.4;
+  this.MINE_FADE_POWER = 10.0;
   this.WATERLINE = 8;
   this.CHEST_ALPHA = 0.33;
   this.MIN_MINE_ROW = 2;
@@ -22,6 +23,7 @@ const BathGame = function() {
   this.backSprite = null;
   this.imageInfo = [
     {name: "mine_black", url: null, onComplete: this.onImageLoaded},
+    {name: "mine", url: null, onComplete: this.onImageLoaded},
     {name: "ship", url: null, onComplete: this.onImageLoaded},
     {name: "seaweed", url: null, onComplete: this.onImageLoaded},
     {name: "chest", url: null, onComplete: this.onImageLoaded},
@@ -235,9 +237,14 @@ BathGame.prototype.setup = function() {
 
 BathGame.prototype.createMines = function() {
   for (var i=0; i<this.maxMines; ++i) {
-    const mine = new PIXI.Sprite(this.getSprite("mine_black").texture);
-    mine.width *= this.gameScale;
-    mine.height *= this.gameScale;
+    const mineDark = new PIXI.Sprite(this.getSprite("mine_black").texture);
+    const mineLight = new PIXI.Sprite(this.getSprite("mine").texture);
+    mineDark.width *= this.gameScale;
+    mineDark.height *= this.gameScale;
+    mineLight.width *= this.gameScale;
+    mineLight.height *= this.gameScale;
+    
+    const mine = new BathGame.Mine(mineLight, mineDark);
     this.mines.push(mine);
   }
 };
@@ -344,10 +351,13 @@ BathGame.prototype.placeMines = function() {
     const col = allPositions[posIndex] - row * this.gameSize.cols;
     const mine = this.mines[mineIndex];
 
-    mine.x = this.xFromColumn(col) + this.TILE_SIZE / 2 * this.gameScale - mine.width / 2;
-    mine.y = this.yFromRow(row) + this.TILE_SIZE / 2 * this.gameScale - mine.height / 2;
-    jem.pixi.stage.addChild(mine);
-
+    const mineX = this.xFromColumn(col) + this.TILE_SIZE / 2 * this.gameScale;
+    const mineY = this.yFromRow(row) + this.TILE_SIZE / 2 * this.gameScale;
+    const depthParam = (mineY - this.playField.top) / this.playField.height * this.MINE_FADE_POWER;
+    const depthAlpha = Math.exp(-depthParam * depthParam);
+    
+    mine.addToScene(mineX, mineY, depthAlpha)
+    
     numMines -= 1;
     mineIndex += 1;
   }
