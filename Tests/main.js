@@ -15,6 +15,9 @@ const BathGame = function() {
   this.MOVE_PERIOD = 20;
   this.MIN_PLAYER_ALPHA = 0.2;
   this.PLAYER_FADE_POWER = 2.0;
+  this.SONAR_SPEED = 4.0;
+  this.MAX_SONAR_RANGE = 5;
+  this.SONAR_LINE = {WIDTH: 4, COLOR: 0xFF0000};
 
   this.gameSize = {rows: 20, cols: 11};
   this.gameScale = 1;
@@ -38,6 +41,8 @@ const BathGame = function() {
   this.minMines = Math.round(this.gameSize.rows * this.gameSize.cols * 0.2);
   this.maxMines = Math.round(this.gameSize.rows * this.gameSize.cols * 0.8);
   this.mines = [];
+  this.minesInScene = [];
+  this.minesPinged = [];
   this.mineLocations = [];
   this.player = null;
   this.lights = null;
@@ -49,6 +54,8 @@ const BathGame = function() {
   this.fsm = null;
   this.states = {};
   this.activeState = null;
+  this.sonarGfx = null;
+  this.sonarSize = 0;
   
   this.sprites = {};
 };
@@ -70,6 +77,55 @@ BathGame.prototype.loadImages = function() {
 // Update =====================================================================
 BathGame.prototype.update = function(dt) {
 
+};
+
+BathGame.prototype.startSonar = function() {
+  this.sonarSize = 0;
+  this.minesPinged.length = 0;
+  this.player.addChild(this.sonarGfx);
+};
+
+BathGame.prototype.updateSonar = function(dt) {
+  const maxRadius = this.TILE_SIZE * this.gameScale * this.MAX_SONAR_RANGE;
+
+  this.sonarSize += dt * this.SONAR_SPEED * this.gameScale;
+  var alpha = Math.sqrt(1.0 - Math.min(1.0, this.sonarSize / maxRadius));
+  const centerY = this.player.y + this.TILE_SIZE * this.gameScale / 2;
+
+  this.sonarGfx.clear();
+
+  var outerRadius = Math.round(this.sonarSize);
+  const sonarFadeFactor = 0.95;
+  while (outerRadius > 0 && alpha > 0.05) {
+    const lineWidth = this.SONAR_LINE.WIDTH * this.gameScale;
+    this.sonarGfx.lineStyle(Math.max(1, Math.min(outerRadius, lineWidth)), this.SONAR_LINE.COLOR, alpha);
+
+    if (centerY - outerRadius >= this.playField.top) {
+      this.sonarGfx.drawCircle(0, 0, outerRadius);
+    }
+    else {
+      const dy = centerY - this.playField.top;
+      const dx = Math.round(Math.sqrt(outerRadius * outerRadius - dy * dy));
+      var startAngle = Math.atan2(-dy, dx);
+      var endAngle = Math.atan2(-dy, -dx);
+
+      if (startAngle < 0) startAngle += 2 * Math.PI;
+      if (endAngle < 0) endAngle += 2 * Math.PI;
+
+      this.sonarGfx.arc(0, 0, outerRadius, startAngle, endAngle);
+    }
+
+    outerRadius -= lineWidth;
+    alpha *= sonarFadeFactor;
+}
+
+  if (this.sonarSize >= maxRadius) {
+    this.setState("waitForMove");
+  }
+};
+
+BathGame.prototype.endSonar = function() {
+  this.player.removeChild(this.sonarGfx);
 };
 
 BathGame.prototype.startMove = function() {
@@ -100,6 +156,14 @@ BathGame.prototype.updateMove = function(dt) {
   
   if (moveIsDone) {
     this.setState("waitForMove");
+  }
+
+  this.updateMineLighting();
+};
+
+BathGame.prototype.updateMineLighting = function() {
+  for (var mine of this.minesInScene) {
+    mine.setLightSourcePosition(this.player.x, this.player.y,  this.gameScale, this.TILE_SIZE, true);
   }
 };
 
@@ -208,7 +272,7 @@ BathGame.prototype.moveDown = function() {
 };
 
 BathGame.prototype.sonarPing = function() {
-  // TODO: add this.
+  this.setState("doSonar");
 };
 
 BathGame.prototype.setup = function() {
@@ -228,6 +292,7 @@ BathGame.prototype.setup = function() {
   this.fsm = jem.FSM.create(this);
   this.states["waitForMove"] = this.fsm.createState("waitForMove");
   this.states["doMove"] = this.fsm.createState("doMove", this.startMove, this.updateMove);
+  this.states["doSonar"] = this.fsm.createState("doSonar", this.startSonar, this.updateSonar);
 
   this.states["waitForMove"].onKeyDown = this.waitingForKeyDown.bind(this);
 
@@ -254,6 +319,9 @@ BathGame.prototype.createPlayer = function() {
   this.lights = new PIXI.Sprite(this.getSprite("lights").texture);
   this.player.width *= this.gameScale;
   this.player.height *= this.gameScale;
+  this.sonarGfx = new PIXI.Graphics();
+  this.sonarGfx.x = this.player.width / 2;
+  this.sonarGfx.y = this.player.height / 2;
 };
 
 BathGame.prototype.createChest = function() {
@@ -266,6 +334,7 @@ BathGame.prototype.startLevel = function() {
   this.placeChest();
   this.resetPlayer();
   this.placeMines();
+  this.updateMineLighting();
 
   this.setState("waitForMove");
 };
@@ -293,6 +362,7 @@ BathGame.prototype.resetPlayer = function() {
 
 BathGame.prototype.placeMines = function() {
   this.mineLocations.length = 0;
+  this.minesInScene.length = 0;
 
   // First, build a list of all possible positions.
   const allPositions = []
@@ -356,7 +426,8 @@ BathGame.prototype.placeMines = function() {
     const depthParam = (mineY - this.playField.top) / this.playField.height * this.MINE_FADE_POWER;
     const depthAlpha = Math.exp(-depthParam * depthParam);
     
-    mine.addToScene(mineX, mineY, depthAlpha)
+    mine.addToScene(mineX, mineY, depthAlpha);
+    this.minesInScene.push(mine);
     
     numMines -= 1;
     mineIndex += 1;

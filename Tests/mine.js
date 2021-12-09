@@ -25,6 +25,29 @@ BathGame.Mine.prototype.setPosition = function(x, y) {
   this.darkSprite.y = y;
 };
 
+BathGame.Mine.prototype.setLightSourcePosition = function(x, y, scale, tileSize, sourceIsOn) {
+  if (sourceIsOn) {
+    const mineEdgeX = this.darkSprite.x - tileSize / 2;
+    const mineEdgeY = this.darkSprite.y - tileSize / 2;
+
+    var deltaX = (mineEdgeX - x) / scale / tileSize;
+    var deltaY = ((mineEdgeY - y) / scale / tileSize - 1) / 2;
+
+    if (deltaY < 0 || deltaY > 1 || deltaX < -1 || deltaX > 1) {
+      this.setAlpha(this.startAlpha, true);
+    }
+    else {
+      const xFactor = 1.0 - Math.abs(deltaX);
+      const yFactor = 1.0 - deltaY;
+      const deltaAlpha = 1.0 - this.startAlpha;
+      this.setAlpha(this.startAlpha + deltaAlpha * xFactor * xFactor * yFactor * yFactor, true);
+    }
+  }
+  else {
+    this.setAlpha(this.startAlpha, true);
+  }
+};
+
 BathGame.Mine.prototype.setAlpha = function(newAlpha, immediate) {
   this.wantAlpha = newAlpha;
   
