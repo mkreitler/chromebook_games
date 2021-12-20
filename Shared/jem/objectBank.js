@@ -14,7 +14,7 @@
  * @param {Max number of objects to allow before recycling} maxSize 
  */
 
-jem.ObjectBank = function(listener, generator, initialSize, maxSize) {
+JEM.ObjectBank = function(listener, generator, initialSize = 0, maxSize = 128) {
     this.listener = listener;
 
     jem.assert(listener, "No listener found!");
@@ -23,30 +23,52 @@ jem.ObjectBank = function(listener, generator, initialSize, maxSize) {
 
     this.size = initialSize;
     this.maxSize = maxSize || initialSize * 4;
+    this.generator = generator;
     this.spawned = [];
     this.waiting = [];
     this.initialize();
 };
 
-jem.ObjectBank.prototype.initialized = function() {
+JEM.ObjectBank.prototype.initialize = function() {
     for (var i=0; i<this.size; ++i) {
-        this.waiting.push(new generator());
+        this.waiting.push(new this.generator(this));
     }
 };
 
-jem.ObjectBank.prototype.spawn = function(allowRecycle) {
+JEM.ObjectBank.prototype.capacity = function() {
+    return this.size;
+};
+
+JEM.ObjectBank.prototype.spawnCount = function() {
+    return this.spawned.length;
+};
+
+JEM.ObjectBank.prototype.waitCount = function() {
+    return this.waiting.length;
+};
+
+JEM.ObjectBank.prototype.despawnAll = function() {
+    while (this.spawned.length > 0) {
+        this.despawn(this.spawned[this.spawned.length - 1]);
+    }
+};
+
+JEM.ObjectBank.prototype.spawn = function(allowRecycle) {
     var instance = null;
 
     if (this.waiting.length > 0) {
         instance = this.waiting.pop();
+        this.spawned.push(instance);
         this.listener.onSpawned(instance);
     }
 
     if (!instance && this.spawned.length < this.maxSize) {
-        if (this.spawned.length === this.size) {
-            this.size = Math.min(this.size * 2, this.maxSize);
-            for (var i=this.spawned.length; i<this.maxSize; ++i) {
-                this.waiting.push(new generator());
+        jem.assert(this.spawned.length === this.size);
+
+        if (this.spawned.length < this.maxSize) {
+            this.size = Math.min(Math.max(1, this.size * 2), this.maxSize);
+            for (var i=this.spawned.length; i<this.size; ++i) {
+                this.waiting.push(new this.generator(this));
             }
             instance = this.spawn(false);
             // No need to explicitly call onSpawned() as it is
@@ -57,13 +79,16 @@ jem.ObjectBank.prototype.spawn = function(allowRecycle) {
     if (!instance && allowRecycle) {
         instance = this.spawned.shift();
         this.listener.onDespawned(instance, true);
+        
+        this.spawned.push(instance);
         this.listener.onSpawned(instance);
     }
 
     return instance;
 };
 
-jem.ObjectBank.prototype.despawn = function(instance) {
-    jem.Utils.removeFromArray(this.spawned, instance, true);
+JEM.ObjectBank.prototype.despawn = function(instance) {
+    JEM.Utils.removeElement(this.spawned, instance, true);
+    this.waiting.push(instance);
     this.listener.onDespawned(instance, false);
 };

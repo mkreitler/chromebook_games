@@ -61,6 +61,8 @@ JEM.Tests = {
             this.fsmTest01,
             this.fsmTest02,
             this.fsmTest03,
+            this.objectBankTest,
+            this.piximitterTest,
         ];
         
         this.testIndex = 0;
@@ -206,6 +208,202 @@ JEM.Tests = {
         jem.assert(this.testObject.getValue() === 5);
         // console.log("TestValue is " + this.testObject.getValue());
     },
+
+    // Object Bank ------------------------------------------------------------
+    spawnCount: 0,
+
+    objectBankTest: function() {
+        const bank = new JEM.ObjectBank(this, function() {
+            this.value = 1;
+        });
+
+        const spawned = [];
+
+        this.spawnCount = 0;
+
+        for (var i=0; i<64; ++i) {
+            spawned.push(bank.spawn(false));
+        }
+
+        jem.assert(bank.capacity() === 64);
+        jem.assert(bank.spawnCount() === 64);
+        jem.assert(bank.waitCount() === 0);
+
+        while (spawned.length > 0) {
+            bank.despawn(spawned.pop());
+        }
+
+        jem.assert(bank.capacity() === 64);
+        jem.assert(bank.spawnCount() === 0);
+        jem.assert(bank.waitCount() === 64);
+
+        for (var i=0; i<129; ++i) {
+            spawned.push(bank.spawn(true));
+        };
+
+        bank.despawnAll();
+        spawned.length = 0;
+        jem.assert(bank.capacity() === 128);
+        jem.assert(bank.spawnCount() === 0);
+        jem.assert(bank.waitCount() === 128);
+    },
+
+    onSpawned: function(instance) {
+        this.spawnCount += 1;
+    },
+
+    onDespawned: function(instance, wasRecycled) {
+        if (wasRecycled) {
+            jem.assert(this.spawnCount === 128);
+        }
+
+        this.spawnCount -= 1;
+    },
+
+    // Piximitter -------------------------------------------------------------
+    fakeContainer: function(x, y) {
+        this.x = x;
+        this.y = y;
+        this.children = [];
+        this.addChild = function(child) {
+            this.children.push(child);
+        }
+        this.removeChild = function(child) {
+            JEM.Utils.removeElement(this.children, child);
+        }
+    },
+
+    fakeParticle: function() {
+        this.emitter = null;
+        this.x = 0;
+        this.y = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.sx = 1;
+        this.sy = 1;
+        this.rot = 0;
+
+        this.setEmitter = function(emitter) {
+            this.emitter = emitter;
+        };
+
+        this.setPosition = function(x, y) {
+            this.x = x;
+            this.y = y;
+        };
+
+        this.setVelocity = function(vx, vy) {
+            this.vx = vx;
+            this.vy = vy;
+        };
+
+        this.setScale = function(sx, sy) {
+            this.sx = sx;
+            this.sy = sy;
+        };
+
+        this.setRotation = function(theta) {
+            this.rot = theta;
+        };
+
+        this.onSpawned = function() {
+        };
+
+        this.onDespawned = function() {
+        };
+
+        this.kill = function() {
+            if (this.emitter) {
+                this.emitter.onDied(this);
+            }
+        };
+    },
+
+    piximitterTest: function() {
+        const srcContainer = new this.fakeContainer(100, 100);
+        const destContainer = new this.fakeContainer(200, 0);
+
+        var piximitter = new JEM.Piximitter(this.fakeParticle, 0, null, null);
+        var particle = piximitter.emit();
+        jem.assert(particle.x === 0);
+        jem.assert(particle.y === 0);
+        jem.assert(particle.vx === 0);
+        jem.assert(particle.vy === 0);
+        jem.assert(particle.sx === 1);
+        jem.assert(particle.sy === 1);
+        jem.assert(particle.rot === 0);
+        jem.assert(piximitter.getCount() == 1);
+        particle.kill();
+        jem.assert(piximitter.getCount() == 0);
+
+        var optionsOne = {
+            position: {minX: 5, minY: 15},
+            velocity: {minSpeed: 4, minAngle: 90.0},
+            scale: {minScaleX: 2, minScaleY: 3},
+            rotation: {minAngle: 45}
+        };
+
+        piximitter = new JEM.Piximitter(this.fakeParticle, 0, null, null, optionsOne);
+        particle = piximitter.emit();
+        jem.assert(particle.x === 5);
+        jem.assert(particle.y === 15);
+        jem.assert(Math.abs(0 - particle.vx) < 0.001);
+        jem.assert(Math.abs(-optionsOne.velocity.minSpeed - particle.vy) < 0.001);
+        jem.assert(particle.sx === 2);
+        jem.assert(particle.sy === 3);
+        jem.assert(Math.abs(particle.rot - JEM.Utils.degreesToRadians(45)) < 0.001);
+        jem.assert(piximitter.getCount() == 1);
+        particle.kill();
+        jem.assert(piximitter.getCount() == 0);
+
+        piximitter = new JEM.Piximitter(this.fakeParticle, 0, srcContainer, null, optionsOne);
+        particle = piximitter.emit();
+        jem.assert(particle.x === 105);
+        jem.assert(particle.y === 115);
+        jem.assert(Math.abs(0 - particle.vx) < 0.001);
+        jem.assert(Math.abs(-optionsOne.velocity.minSpeed - particle.vy) < 0.001);
+        jem.assert(particle.sx === 2);
+        jem.assert(particle.sy === 3);
+        jem.assert(Math.abs(particle.rot - JEM.Utils.degreesToRadians(45)) < 0.001);
+        jem.assert(piximitter.getCount() == 1);
+        particle.kill();
+        jem.assert(piximitter.getCount() == 0);
+
+        piximitter = new JEM.Piximitter(this.fakeParticle, 0, srcContainer, destContainer, optionsOne);
+        particle = piximitter.emit();
+        jem.assert(particle.x === -95);
+        jem.assert(particle.y === 115);
+        jem.assert(Math.abs(0 - particle.vx) < 0.001);
+        jem.assert(Math.abs(-optionsOne.velocity.minSpeed - particle.vy) < 0.001);
+        jem.assert(particle.sx === 2);
+        jem.assert(particle.sy === 3);
+        jem.assert(Math.abs(particle.rot - JEM.Utils.degreesToRadians(45)) < 0.001);
+        jem.assert(piximitter.getCount() == 1);
+        particle.kill();
+        jem.assert(piximitter.getCount() == 0);
+
+        optionsOne.offsetFunction = function() {
+            const result = {
+                x: Math.random() < 0.5 ? -10 : 10,
+                y: Math.random() < 0.5 ? -15 : 15
+            };
+
+            return result;
+        };
+
+        piximitter = new JEM.Piximitter(this.fakeParticle, 0, srcContainer, destContainer, optionsOne);
+        particle = piximitter.emit();
+        jem.assert(particle.x === -105 || particle.x === -85);
+        jem.assert(particle.y === 100 || particle.y === 130);
+        jem.assert(Math.abs(0 - particle.vx) < 0.001);
+        jem.assert(Math.abs(-optionsOne.velocity.minSpeed - particle.vy) < 0.001);
+        jem.assert(particle.sx === 2);
+        jem.assert(particle.sy === 3);
+        jem.assert(Math.abs(particle.rot - JEM.Utils.degreesToRadians(45)) < 0.001);
+        jem.assert(piximitter.getCount() == 1);
+        particle.kill();
+        jem.assert(piximitter.getCount() == 0);
+    }
 };
 
 var jem = JEM.create();

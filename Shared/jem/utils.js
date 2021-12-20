@@ -49,5 +49,13 @@ JEM.Utils = {
                 obj[arguments[i]] = defaultFn;
             }
         }
-    }
+    },
+
+    radiansToDegrees: function(rad) {
+        return rad * 180 / Math.PI;
+    },
+
+    degreesToRadians: function(deg) {
+        return deg * Math.PI / 180;
+    },
 };

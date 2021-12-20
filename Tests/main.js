@@ -31,7 +31,7 @@ const BathGame = function() {
     {name: "seaweed", url: null, onComplete: this.onImageLoaded},
     {name: "chest", url: null, onComplete: this.onImageLoaded},
     {name: "bubble", url: null, onComplete: this.onImageLoaded},
-    {name: "bathy", url: null, onComplete: this.onImageLoaded},
+    {name: "bathy2", url: null, onComplete: this.onImageLoaded},
     {name: "lights", url: null, onComplete: this.onImageLoaded},
   ];
   this.imagesLoaded = 0;
@@ -86,7 +86,8 @@ BathGame.prototype.startSonar = function() {
 };
 
 BathGame.prototype.updateSonar = function(dt) {
-  const maxRadius = this.TILE_SIZE * this.gameScale * this.MAX_SONAR_RANGE;
+  dt /= this.gameScale;
+  const maxRadius = this.TILE_SIZE * this.MAX_SONAR_RANGE;
 
   this.sonarSize += dt * this.SONAR_SPEED * this.gameScale;
   var alpha = Math.sqrt(1.0 - Math.min(1.0, this.sonarSize / maxRadius));
@@ -315,13 +316,15 @@ BathGame.prototype.createMines = function() {
 };
 
 BathGame.prototype.createPlayer = function() {
-  this.player = new PIXI.Sprite(this.getSprite("bathy").texture);
+  this.player = new PIXI.Sprite(this.getSprite("bathy2").texture);
   this.lights = new PIXI.Sprite(this.getSprite("lights").texture);
   this.player.width *= this.gameScale;
   this.player.height *= this.gameScale;
+  this.lights.width *= this.gameScale;
+  this.lights.height *= this.gameScale;
   this.sonarGfx = new PIXI.Graphics();
-  this.sonarGfx.x = this.player.width / 2;
-  this.sonarGfx.y = this.player.height / 2;
+  this.sonarGfx.x = this.player.width / 2 / this.gameScale;
+  this.sonarGfx.y = this.player.height / 2 / this.gameScale;
 };
 
 BathGame.prototype.createChest = function() {
@@ -461,12 +464,19 @@ BathGame.prototype.getSprite = function(name) {
 }
 
 BathGame.prototype.computePlayFieldSize = function() {
-  // The game wants a 16x9 portrait playField.
+  // The game wants a 9x16 portrait playField.
   const pixPerRow = jem.height() / this.gameSize.rows;
   const pixPerCol = jem.width() / this.gameSize.cols;
   const pixSize = Math.min(pixPerRow, pixPerCol);
-  this.gameScale = Math.floor(pixSize / this.TILE_SIZE);
-  this.gameScale = Math.max(1, this.gameScale);
+
+  if (pixSize < this.TILE_SIZE) {
+    const inverseScale = Math.ceil(this.TILE_SIZE / pixSize);
+    this.gameScale = 1.0 / inverseScale;
+  }
+  else {
+    this.gameScale = Math.floor(pixSize / this.TILE_SIZE);
+    this.gameScale = Math.max(1, this.gameScale);
+  }
 
   this.playField.width = this.gameScale * this.TILE_SIZE * this.gameSize.cols;
   this.playField.height = this.gameScale * this.TILE_SIZE * this.gameSize.rows;
