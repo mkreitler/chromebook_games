@@ -106,7 +106,7 @@ JEM.prototype.clearTickers = function() {
 JEM.prototype.tick = function(dt) {
     this.expiredTickers.forEach((ticker) => {
     if (this.tickers.indexOf(ticker) >= 0) {
-        JEM.utils.removeElement(this.tickers, ticker, true);
+        JEM.Utils.removeElement(this.tickers, ticker, true);
     }
     });
     this.expiredTickers.length = 0;

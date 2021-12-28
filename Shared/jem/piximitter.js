@@ -23,7 +23,13 @@ JEM.Piximitter = function(generator, emissionRate, srcContainer = null, destCont
     this.clock = 0;
     this.particleCount = 0;
     this.running = false;
+    this.rate = emissionRate;
+    this.active = true;
 }; 
+
+JEM.Piximitter.prototype.setActive = function(isActive) {
+    this.active = isActive;
+};
 
 JEM.Piximitter.prototype.setSourceContainer = function(srcContainer) {
     this.srcContainer = srcContainer;
@@ -42,10 +48,18 @@ JEM.Piximitter.prototype.onSpawned = function(particle) {
     }
 
     if (this.destContainer) {
-        this.destContainer.addChild(particle);
+        if (particle instanceof PIXI.Sprite) {
+            this.destContainer.addChild(particle);
+        }
+        else if (particle["getSprite"]) {
+            this.destContainer.addChild(particle.getSprite());
+        }
     }
     else if (particle instanceof PIXI.Sprite) {
         jem.pixi.stage.addChild(particle);
+    }
+    else if (particle["getSprite"]) {
+        jem.pixi.stage.addChild(particle.getSprite());
     }
 };
 
@@ -57,10 +71,18 @@ JEM.Piximitter.prototype.onDespawned = function(particle, wasRecycled) {
     particle.onDespawned();
 
     if (this.destContainer) {
-        this.destContainer.removeChild(particle);
+        if (particle instanceof PIXI.Sprite) {
+            this.destContainer.removeChild(particle);
+        }
+        else if (particle["getSprite"]) {
+            this.destContainer.removeChild(particle.getSprite());
+        }
     }
     else if (particle instanceof PIXI.Sprite) {
         jem.pixi.stage.removeChild(particle);
+    }
+    else if (particle["getSprite"]) {
+        jem.pixi.stage.removeChild(particle.getSprite());
     }
 
     this.particleCount -= 1;
@@ -70,6 +92,7 @@ JEM.Piximitter.prototype.start = function() {
     jem.addTicker(this);
     this.particleCount = 0;
     this.running = true;
+    this.wantsStop = false;
 };
 
 JEM.Piximitter.prototype.stop = function(stopNow) {
@@ -110,93 +133,96 @@ JEM.Piximitter.prototype.onDied = function(particle) {
 };
 
 JEM.Piximitter.prototype.emit = function() {
-    const particle = this.bank.spawn(true);
-    particle.setEmitter(this);
+    var particle = null;
+    if (this.active) {
+        particle = this.bank.spawn(true);
+        particle.setEmitter(this);
 
-    if (this.options) {
-        if (particle["setPosition"]) {
-            var baseX = 0;
-            var baseY = 0;
+        if (this.options) {
+            if (particle["setPosition"]) {
+                var baseX = 0;
+                var baseY = 0;
 
-            if (this.srcContainer && this.destContainer) {
-                baseX = this.srcContainer.x - this.destContainer.x;
-                baseY = this.srcContainer.y - this.destContainer.y;
-            }
-            else if (this.srcContainer) {
-                baseX = this.srcContainer.x;
-                baseY = this.srcContainer.y;
-            }
-            else if (this.destContainer) {
-                baseX = -this.destContainer.x;
-                baseY = -this.destContainer.y;
-            }
-
-            if (typeof this.options.position !== 'undefined') {
-                var x = this.options.position.minX;
-                var y = this.options.position.minY;
-
-                if (typeof this.options.position.maxX !== 'undefined') {
-                    x += Math.round(Math.random() * (this.options.position.maxX - this.options.position.minX));
+                if (this.srcContainer && this.destContainer) {
+                    baseX = this.srcContainer.x - this.destContainer.x;
+                    baseY = this.srcContainer.y - this.destContainer.y;
                 }
-                if (typeof this.options.position.maxY !== 'undefined') {
-                    y += Math.round(Math.random() * (this.options.position.maxY - this.options.position.minY));
+                else if (this.srcContainer) {
+                    baseX = this.srcContainer.x;
+                    baseY = this.srcContainer.y;
+                }
+                else if (this.destContainer) {
+                    baseX = -this.destContainer.x;
+                    baseY = -this.destContainer.y;
                 }
 
-                baseX += x;
-                baseY += y;
-            }
+                if (typeof this.options.position !== 'undefined') {
+                    var x = this.options.position.minX;
+                    var y = this.options.position.minY;
 
-            if (this.options["offsetFunction"]) {
-                const offset = this.options.offsetFunction();
-                baseX += offset.x;
-                baseY += offset.y;
-            }
+                    if (typeof this.options.position.maxX !== 'undefined') {
+                        x += Math.round(Math.random() * (this.options.position.maxX - this.options.position.minX));
+                    }
+                    if (typeof this.options.position.maxY !== 'undefined') {
+                        y += Math.round(Math.random() * (this.options.position.maxY - this.options.position.minY));
+                    }
 
-            particle.setPosition(baseX, baseY);
-        }
-
-        if (particle["setVelocity"] && this.options.velocity && typeof this.options.velocity.minSpeed !== 'undefined') {
-            var speed = this.options.velocity.minSpeed;
-
-            if (Math.abs(speed) > 0 || this.options.velocity["maxSpeed"]) {
-                if (this.options.velocity["maxSpeed"]) {
-                    speed += Math.round(Math.random() * (this.options.velocity.maxSpeed - speed));
-                }
-                var angle = 0;
-                var angle = typeof this.options.velocity.minAngle !== 'undefined' ? this.options.velocity.minAngle : 0
-                if (typeof this.options.velocity.maxAngle !== 'undefined') {
-                    angle += Math.round(Math.random() * (this.options.velocity.maxAngle - this.options.velocity.minAngle));
+                    baseX += x;
+                    baseY += y;
                 }
 
-                const angleRad = JEM.Utils.degreesToRadians(angle);
-                const vx = speed * Math.cos(angleRad);
-                const vy = -speed * Math.sin(angleRad);
+                if (this.options["offsetFunction"]) {
+                    const offset = this.options.offsetFunction();
+                    baseX += offset.x;
+                    baseY += offset.y;
+                }
 
-                particle.setVelocity(vx, vy);
-            }
-        }
-
-        if (particle["setScale"] && typeof this.options.scale !== 'undefined') {
-            var scaleX = this.options.scale.minScaleX || 1;
-            if (this.options.scale.maxScaleX) {
-                scaleX += Math.round(Math.random() * (this.options.scale.maxScaleX - this.optionsScale.minScaleX));
+                particle.setPosition(baseX, baseY);
             }
 
-            var scaleY = this.options.scale.minScaleY || 1;
-            if (this.options.scale.maxScaleY) {
-                this.scaleY += Math.round(Math.random() * (this.options.scale.maxScaleY - this.optionsScale.minScaleY));
+            if (particle["setVelocity"] && this.options.velocity && typeof this.options.velocity.minSpeed !== 'undefined') {
+                var speed = this.options.velocity.minSpeed;
+
+                if (Math.abs(speed) > 0 || this.options.velocity["maxSpeed"]) {
+                    if (this.options.velocity["maxSpeed"]) {
+                        speed += Math.round(Math.random() * (this.options.velocity.maxSpeed - speed));
+                    }
+                    var angle = 0;
+                    var angle = typeof this.options.velocity.minAngle !== 'undefined' ? this.options.velocity.minAngle : 0
+                    if (typeof this.options.velocity.maxAngle !== 'undefined') {
+                        angle += Math.round(Math.random() * (this.options.velocity.maxAngle - this.options.velocity.minAngle));
+                    }
+
+                    const angleRad = JEM.Utils.degreesToRadians(angle);
+                    const vx = speed * Math.cos(angleRad);
+                    const vy = -speed * Math.sin(angleRad);
+
+                    particle.setVelocity(vx, vy);
+                }
             }
 
-            particle.setScale(scaleX, scaleY);
-        }
+            if (particle["setScale"] && typeof this.options.scale !== 'undefined') {
+                var scaleX = this.options.scale.minScaleX || 1;
+                if (this.options.scale.maxScaleX) {
+                    scaleX += Math.round(Math.random() * (this.options.scale.maxScaleX - this.optionsScale.minScaleX));
+                }
 
-        if (particle["setRotation"] && typeof this.options.rotation !== 'undefined') {
-            var theta = this.options.rotation.minAngle || 0;
-            if (typeof this.options.rotation.maxAngle !== 'undefined') {
-                theta += Math.round(Math.random() * (this.options.rotation.maxAngle - this.options.rotation.minAngle));
+                var scaleY = this.options.scale.minScaleY || 1;
+                if (this.options.scale.maxScaleY) {
+                    this.scaleY += Math.round(Math.random() * (this.options.scale.maxScaleY - this.optionsScale.minScaleY));
+                }
+
+                particle.setScale(scaleX, scaleY);
             }
-            theta = JEM.Utils.degreesToRadians(theta);
-            particle.setRotation(theta);
+
+            if (particle["setRotation"] && typeof this.options.rotation !== 'undefined') {
+                var theta = this.options.rotation.minAngle || 0;
+                if (typeof this.options.rotation.maxAngle !== 'undefined') {
+                    theta += Math.round(Math.random() * (this.options.rotation.maxAngle - this.options.rotation.minAngle));
+                }
+                theta = JEM.Utils.degreesToRadians(theta);
+                particle.setRotation(theta);
+            }
         }
     }
 

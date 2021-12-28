@@ -18,6 +18,7 @@ const BathGame = function() {
   this.SONAR_SPEED = 4.0;
   this.MAX_SONAR_RANGE = 5;
   this.SONAR_LINE = {WIDTH: 4, COLOR: 0xFF0000};
+  this.MAX_MOVES = 60;
 
   this.gameSize = {rows: 20, cols: 11};
   this.gameScale = 1;
@@ -47,7 +48,9 @@ const BathGame = function() {
   this.player = null;
   this.lights = null;
   this.chest = null;
-  this.bubbles = null;
+  this.masterBubble = null;
+  this.bubbles = [];
+  this.bubbler = null;
   this.from = {x: 0, y: 0},
   this.to = {x: 0, y: 0},
   this.moveParam;
@@ -56,7 +59,9 @@ const BathGame = function() {
   this.activeState = null;
   this.sonarGfx = null;
   this.sonarSize = 0;
-  
+  this.particleContainer = null;
+  this.movesTaken = 0;
+
   this.sprites = {};
 };
 
@@ -130,7 +135,21 @@ BathGame.prototype.endSonar = function() {
 };
 
 BathGame.prototype.startMove = function() {
+  this.updateBubbleCount();
+
+  this.bubbler.setActive(true);
+  BathGame.Bubble.resetBubbleCount();
+  this.bubbler.start();
   this.moveParam = 0.0;
+  this.movesTaken += 1;
+};
+
+BathGame.prototype.updateBubbleCount = function() {
+  const bubbleCountParam = Math.max(0, 1.0 - this.movesTaken / this.MAX_MOVES);
+
+  // TODO: if bubbleCountParam === 0, game over.
+
+  BathGame.Bubble.setBubbleCountParam(bubbleCountParam);
 };
 
 BathGame.prototype.updateMove = function(dt) {
@@ -157,6 +176,7 @@ BathGame.prototype.updateMove = function(dt) {
   
   if (moveIsDone) {
     this.setState("waitForMove");
+    this.bubbler.stop();
   }
 
   this.updateMineLighting();
@@ -276,11 +296,16 @@ BathGame.prototype.sonarPing = function() {
   this.setState("doSonar");
 };
 
+BathGame.prototype.stopBubbling = function() {
+  this.bubbler.setActive(false);
+};
+
 BathGame.prototype.setup = function() {
   this.imageInfo.forEach((info) => {
     this.sprites[info.name] = new PIXI.Sprite(PIXI.Loader.shared.resources[info.name].texture);
   });
 
+  jem.switchboard.addListener(this, "stopBubbling");
   jem.keyHandler.addListener(this);
 
   this.computePlayFieldSize();
@@ -289,6 +314,7 @@ BathGame.prototype.setup = function() {
   this.createChest();
   this.createMines();
   this.createPlayer();
+  this.createBubbles();
 
   this.fsm = jem.FSM.create(this);
   this.states["waitForMove"] = this.fsm.createState("waitForMove");
@@ -299,6 +325,21 @@ BathGame.prototype.setup = function() {
 
   this.level = 1;
   this.startLevel();
+};
+
+BathGame.prototype.createBubbles = function() {
+  this.masterBubble = new PIXI.Sprite(this.getSprite("bubble").texture);
+  this.masterBubble.width *= this.gameScale;
+  this.masterBubble.height *= this.gameScale;
+  const options = {
+    'position': {minX: this.TILE_SIZE * this.gameScale / 2 + -5, minY: 0, maxX: this.TILE_SIZE * this.gameScale / 2 + 5, maxY: 0},
+    'velocity': {minSpeed: 1 * this.gameScale, maxSpeed: 3 * this.gameScale, minAngle: 90}
+  };
+  this.bubbler = new JEM.Piximitter(this.bubbleGenerator(this.masterBubble, this.gameScale, this.playField.top), 1, this.player, null, options);
+};
+
+BathGame.prototype.bubbleGenerator = function(masterBubble, gameScale, minY) {
+  return function() { return new BathGame.Bubble(new PIXI.Sprite(masterBubble.texture), gameScale, minY); }
 };
 
 BathGame.prototype.createMines = function() {
@@ -338,6 +379,8 @@ BathGame.prototype.startLevel = function() {
   this.resetPlayer();
   this.placeMines();
   this.updateMineLighting();
+
+  this.movesTaken = 0;
 
   this.setState("waitForMove");
 };
